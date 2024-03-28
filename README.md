@@ -49,6 +49,11 @@ $ anvil
 
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+
+$ source .env; forge script script/Counter.s.sol:CounterScript --rpc-url {$SEPOLIA_RPC_URL} --private-key {$PRIVATE_KEY} #--broadcast
+$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$LOCAL_RPC_URL} --private-key {$PRIVATE_KEY} #--broadcast
+$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$LOCAL_RPC_URL} #--broadcast
+$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$REMOTE_RPC_URL} --private-key {$PRIVATE_KEY} --legacy #--broadcast
 ```
 
 ### Cast

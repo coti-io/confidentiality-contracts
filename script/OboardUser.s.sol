@@ -2,9 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Counter} from "../src/Counter.sol";
+import {GetUserKey} from "../src/user/GetUserKey.sol";
 
-contract CounterScript is Script {
+contract PrivateERC20Script is Script {
+    uint64 initialAmount = 500000000;
+
     function setUp() public {}
 
     function run() public {
@@ -12,9 +14,9 @@ contract CounterScript is Script {
 
         vm.startBroadcast(key);
 
-        Counter counter = new Counter();
+        GetUserKey userKey = new GetUserKey();
+        console.log("userKey deployed at", address(userKey));
 
         vm.stopBroadcast();
-        console.log("counter deployed at", address(counter));
     }
 }
