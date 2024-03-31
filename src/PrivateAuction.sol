@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 import "./lib/MpcCore.sol";
-import { PrivateERC20Contract } from "./token/PrivateERC20Contract.sol";
+import {PrivateERC20Contract} from "./token/PrivateERC20Contract.sol";
 
 contract PrivateAuction {
     uint public endTime;
@@ -44,7 +44,12 @@ contract PrivateAuction {
 
     event Winner(address who);
 
-    constructor(address _beneficiary, PrivateERC20Contract _tokenContract, uint biddingTime, bool isStoppable) {
+    constructor(
+        address _beneficiary,
+        PrivateERC20Contract _tokenContract,
+        uint biddingTime,
+        bool isStoppable
+    ) {
         beneficiary = _beneficiary;
         tokenContract = _tokenContract;
         endTime = block.timestamp + biddingTime;
@@ -55,7 +60,10 @@ contract PrivateAuction {
         contractOwner = msg.sender;
     }
 
-    function bid(ctUint64 _itCT, bytes calldata _itSignature) public onlyBeforeEnd {
+    function bid(
+        ctUint64 _itCT,
+        bytes calldata _itSignature
+    ) public onlyBeforeEnd {
         ctUint64 existingBid = bids[msg.sender];
 
         itUint64 memory it;
@@ -66,19 +74,45 @@ contract PrivateAuction {
         if (ctUint64.unwrap(existingBid) == 0) {
             bidCounter++;
             bids[msg.sender] = MpcCore.offBoard(gtBid);
-            tokenContract.contractTransferFrom(msg.sender, address(this), gtBid);
-        } else if (MpcCore.decrypt(MpcCore.ge(MpcCore.onBoard(existingBid), MpcCore.onBoard(highestBid)))) {
+            tokenContract.contractTransferFrom(
+                msg.sender,
+                address(this),
+                gtBid
+            );
+        } else if (
+            MpcCore.decrypt(
+                MpcCore.ge(
+                    MpcCore.onBoard(existingBid),
+                    MpcCore.onBoard(highestBid)
+                )
+            )
+        ) {
             bids[msg.sender] = MpcCore.offBoard(gtBid);
-            gtUint64 toTransfer = MpcCore.sub(gtBid, MpcCore.onBoard(existingBid));
-            tokenContract.contractTransferFrom(msg.sender, address(this), toTransfer);
+            gtUint64 toTransfer = MpcCore.sub(
+                gtBid,
+                MpcCore.onBoard(existingBid)
+            );
+            tokenContract.contractTransferFrom(
+                msg.sender,
+                address(this),
+                toTransfer
+            );
         }
         ctUint64 currentBid = bids[msg.sender];
-        if (ctUint64.unwrap(highestBid) == 0 || MpcCore.decrypt(MpcCore.ge(MpcCore.onBoard(existingBid), MpcCore.onBoard(highestBid)))) {
+        if (
+            ctUint64.unwrap(highestBid) == 0 ||
+            MpcCore.decrypt(
+                MpcCore.ge(
+                    MpcCore.onBoard(existingBid),
+                    MpcCore.onBoard(highestBid)
+                )
+            )
+        ) {
             highestBid = currentBid;
         }
     }
 
-    function getBid() public returns (ctUint64) {
+    function getBid() public view returns (ctUint64) {
         gtUint64 bidGt = MpcCore.onBoard(bids[msg.sender]);
         return MpcCore.offBoardToUser(bidGt, msg.sender);
     }
@@ -88,20 +122,40 @@ contract PrivateAuction {
         manuallyStopped = true;
     }
 
-    function doIHaveHighestBid() public onlyAfterEnd returns (ctBool) {
+    function getHighestBid() public view onlyContractOwner returns (ctUint64) {
+        gtUint64 bidGt = MpcCore.onBoard(highestBid);
+        return MpcCore.offBoardToUser(bidGt, msg.sender);
+    }
+
+    function doIHaveHighestBid() public view onlyAfterEnd returns (ctBool) {
         gtBool isHighest = MpcCore.setPublic(false);
-        if (ctUint64.unwrap(highestBid) != 0 && ctUint64.unwrap(bids[msg.sender]) != 0) {
-            isHighest = MpcCore.ge(MpcCore.onBoard(bids[msg.sender]), MpcCore.onBoard(highestBid));
-        } 
+        if (
+            ctUint64.unwrap(highestBid) != 0 &&
+            ctUint64.unwrap(bids[msg.sender]) != 0
+        ) {
+            isHighest = MpcCore.ge(
+                MpcCore.onBoard(bids[msg.sender]),
+                MpcCore.onBoard(highestBid)
+            );
+        }
         return MpcCore.offBoardToUser(isHighest, msg.sender);
     }
 
     function claim() public onlyAfterEnd {
-        gtBool isHighest = MpcCore.ge(MpcCore.onBoard(bids[msg.sender]), MpcCore.onBoard(highestBid));
-        gtBool canClaim = MpcCore.and(MpcCore.not(MpcCore.onBoard(objectClaimed)), isHighest);
+        gtBool isHighest = MpcCore.ge(
+            MpcCore.onBoard(bids[msg.sender]),
+            MpcCore.onBoard(highestBid)
+        );
+        gtBool canClaim = MpcCore.and(
+            MpcCore.not(MpcCore.onBoard(objectClaimed)),
+            isHighest
+        );
         if (MpcCore.decrypt(canClaim)) {
             objectClaimed = MpcCore.offBoard(MpcCore.setPublic(true));
-            bids[msg.sender] = MpcCore.offBoardToUser(MpcCore.setPublic64(0), msg.sender);
+            bids[msg.sender] = MpcCore.offBoardToUser(
+                MpcCore.setPublic64(0),
+                msg.sender
+            );
             emit Winner(msg.sender);
         }
     }
@@ -110,27 +164,40 @@ contract PrivateAuction {
         require(!tokenTransferred);
 
         tokenTransferred = true;
-        tokenContract.contractTransfer(beneficiary, MpcCore.onBoard(highestBid));
+        tokenContract.contractTransfer(
+            beneficiary,
+            MpcCore.onBoard(highestBid)
+        );
     }
 
     // Withdraw a bid from the auction to the caller once the auction has stopped.
     function withdraw() public onlyAfterEnd {
         gtUint64 bidValue = MpcCore.onBoard(bids[msg.sender]);
         gtBool isHighestBid = MpcCore.ge(bidValue, MpcCore.onBoard(highestBid));
-        gtBool canWithdraw = MpcCore.not(MpcCore.and(isHighestBid, MpcCore.not(MpcCore.onBoard(objectClaimed))));
+        gtBool canWithdraw = MpcCore.not(
+            MpcCore.and(
+                isHighestBid,
+                MpcCore.not(MpcCore.onBoard(objectClaimed))
+            )
+        );
         if (MpcCore.decrypt(canWithdraw)) {
-            bids[msg.sender] = MpcCore.offBoardToUser(MpcCore.setPublic64(0), msg.sender);
+            bids[msg.sender] = MpcCore.offBoardToUser(
+                MpcCore.setPublic64(0),
+                msg.sender
+            );
             tokenContract.contractTransfer(msg.sender, bidValue);
         }
     }
 
     modifier onlyBeforeEnd() {
-        if (block.timestamp >= endTime || manuallyStopped == true) revert TooLate(endTime);
+        if (block.timestamp >= endTime || manuallyStopped == true)
+            revert TooLate(endTime);
         _;
     }
 
     modifier onlyAfterEnd() {
-        if (block.timestamp <= endTime && manuallyStopped == false) revert TooEarly(endTime);
+        if (block.timestamp <= endTime && manuallyStopped == false)
+            revert TooEarly(endTime);
         _;
     }
 
