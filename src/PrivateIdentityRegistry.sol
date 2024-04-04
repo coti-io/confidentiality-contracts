@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "./lib/MpcCore.sol";
+import "@soda-labs/MpcCore.sol";
 
 contract PrivateIdentityRegistry is Ownable2Step {
     uint constant MAX_IDENTIFIERS_LENGTH = 20;

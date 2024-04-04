@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import "./lib/MpcCore.sol";
+import "@soda-labs/MpcCore.sol";
 import {PrivateERC20Contract} from "./token/PrivateERC20Contract.sol";
 
 contract PrivateAuction {
