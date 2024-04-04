@@ -4,3 +4,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "soda-sdk"]
+	path = soda-sdk
+	url = git@github.com:soda-mpc/soda-sdk.git

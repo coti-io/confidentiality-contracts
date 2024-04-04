@@ -1,21 +1,22 @@
-## Foundry
+## Privacy contracts for Coti V2
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Install - Forge
 
-Foundry consists of:
+```shell
+# TODO: move the repo to the right org
+$ cargo add git@github.com:vladi-coti/privacy-contracts.git
+```
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Install - Hardhat
 
-## Documentation
+```shell
+# TODO: publish this repo as a package to npmjs
+$ yarn add <npm package>
+```
 
-https://book.getfoundry.sh/
+## Usage - Forge
 
-## Usage
-
-### Build
+### Compile
 
 ```shell
 $ forge build
@@ -27,31 +28,7 @@ $ forge build
 $ forge test
 ```
 
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-#### Create
-```shell
-$ source .env; forge create --rpc-url $SODALABS_NODE_RPC_URL --constructor-args "SODA" "SOD" 500000000 --private-key $SIGNING_KEY --revert-strings debug --nonce 287 --legacy src/token/PrivateERC20Contract.sol:PrivateERC20Contract
-
-```
+### Deploy - Forge
 
 #### Script
 ```shell
@@ -61,16 +38,10 @@ $ source .env; forge script script/Counter.s.sol:CounterScript --rpc-url $SEPOLI
 $ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url $SODALABS_NODE_RPC_URL --legacy --skip-simulation --broadcast
 ```
 
-### Cast
+## Usage - Hardhat
+
+### Compile
 
 ```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+$ yarn hardhat compile
 ```
