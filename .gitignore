@@ -1,5 +1,8 @@
-# Dotenv file
+node_modules
+dist
 .env
+coverage
+coverage.json
 
 # Hardhat
 /cache
