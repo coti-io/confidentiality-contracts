@@ -71,7 +71,7 @@ contract PrivateERC20Contract {
     // Since the balance is initially encrypted internally using the system's AES key, the user cannot access it. 
     // Thus, the balance undergoes re-encryption using the user's secret key. 
     // As a result, the function is not designated as a "view" function.
-    function balanceOf() public view returns (ctUint64 balance){
+    function balanceOf() public returns (ctUint64 balance){
         ctUint64 balanceAmount = balances[msg.sender];
         // The balance is saved encrypted using the system key. However, to allow the user to access it, the balance needs to be re-encrypted using the user key. 
         // Therefore, we decrypt the balance (onBoard) and then encrypt it again using the user key (offBoardToUser).
@@ -213,7 +213,7 @@ contract PrivateERC20Contract {
     }
 
     // Returns the encrypted balances of the two addresses
-    function getBalances(address _from, address _to) private view returns (gtUint64, gtUint64){
+    function getBalances(address _from, address _to) private returns (gtUint64, gtUint64){
         ctUint64 fromBalance = balances[_from];
         ctUint64 toBalance = balances[_to];
 
@@ -268,7 +268,7 @@ contract PrivateERC20Contract {
     }
 
     // Returns the encrypted allowance of the spender. The encryption is done using the msg.sender aes key
-    function allowance(address _owner, address _spender) public view returns (ctUint64 remaining){
+    function allowance(address _owner, address _spender) public returns (ctUint64 remaining){
         require(_owner == msg.sender || _spender == msg.sender);
             
         ctUint64 remainingCt = getGTAllowance(_owner, _spender);
@@ -277,7 +277,7 @@ contract PrivateERC20Contract {
     }
 
     // Returns the encrypted allowance of the spender. The encryption is done using the system aes key
-    function getGTAllowance(address _owner, address _spender) private view returns (ctUint64 remaining){
+    function getGTAllowance(address _owner, address _spender) private returns (ctUint64 remaining){
         // ctUint64 zero = ctUint64.wrap(0);
         if (ctUint64.unwrap(allowances[_owner][_spender]) == 0) {// 0 means that no allowance has been set
             gtUint64 zero = MpcCore.setPublic64(0);

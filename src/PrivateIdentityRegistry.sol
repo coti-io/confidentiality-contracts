@@ -150,7 +150,6 @@ contract PrivateIdentityRegistry is Ownable2Step {
         string calldata identifier
     )
         public
-        view
         onlyExistingWallet(wallet)
         onlyAllowed(wallet, identifier)
         returns (ctUint64)

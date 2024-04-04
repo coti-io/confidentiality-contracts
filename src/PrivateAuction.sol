@@ -112,7 +112,7 @@ contract PrivateAuction {
         }
     }
 
-    function getBid() public view returns (ctUint64) {
+    function getBid() public returns (ctUint64) {
         gtUint64 bidGt = MpcCore.onBoard(bids[msg.sender]);
         return MpcCore.offBoardToUser(bidGt, msg.sender);
     }
@@ -122,12 +122,7 @@ contract PrivateAuction {
         manuallyStopped = true;
     }
 
-    function getHighestBid() public view onlyContractOwner returns (ctUint64) {
-        gtUint64 bidGt = MpcCore.onBoard(highestBid);
-        return MpcCore.offBoardToUser(bidGt, msg.sender);
-    }
-
-    function doIHaveHighestBid() public view onlyAfterEnd returns (ctBool) {
+    function doIHaveHighestBid() public onlyAfterEnd returns (ctBool) {
         gtBool isHighest = MpcCore.setPublic(false);
         if (
             ctUint64.unwrap(highestBid) != 0 &&

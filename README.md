@@ -47,13 +47,18 @@ $ anvil
 
 ### Deploy
 
+#### Create
+```shell
+$ source .env; forge create --rpc-url $SODALABS_NODE_RPC_URL --constructor-args "SODA" "SOD" 500000000 --private-key $SIGNING_KEY --revert-strings debug --nonce 287 --legacy src/token/PrivateERC20Contract.sol:PrivateERC20Contract
+
+```
+
+#### Script
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
 
-$ source .env; forge script script/Counter.s.sol:CounterScript --rpc-url {$SEPOLIA_RPC_URL} --private-key {$PRIVATE_KEY} #--broadcast
-$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$LOCAL_RPC_URL} --private-key {$PRIVATE_KEY} #--broadcast
-$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$LOCAL_RPC_URL} #--broadcast
-$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url {$REMOTE_RPC_URL} --private-key {$PRIVATE_KEY} --legacy #--broadcast
+$ source .env; forge script script/Counter.s.sol:CounterScript --rpc-url $SEPOLIA_RPC_URL #--broadcast
+$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url $SODALABS_NODE_RPC_URL --legacy --skip-simulation --broadcast
 ```
 
 ### Cast
