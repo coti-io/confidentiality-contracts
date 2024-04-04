@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.19;
 
-import "@soda-labs/MpcCore.sol";
-import {PrivateERC20Contract} from "./token/PrivateERC20Contract.sol";
+import "./lib/MpcCore.sol";
+import {PrivateERC20} from "./token/PrivateERC20.sol";
 
 contract PrivateAuction {
     uint public endTime;
@@ -20,7 +20,7 @@ contract PrivateAuction {
     uint public bidCounter;
 
     // The token contract used for encrypted bids.
-    PrivateERC20Contract public tokenContract;
+    PrivateERC20 public tokenContract;
 
     // Whether the auction object has been claimed.
     ctBool internal objectClaimed;
@@ -46,7 +46,7 @@ contract PrivateAuction {
 
     constructor(
         address _beneficiary,
-        PrivateERC20Contract _tokenContract,
+        PrivateERC20 _tokenContract,
         uint biddingTime,
         bool isStoppable
     ) {

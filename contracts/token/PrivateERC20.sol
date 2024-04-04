@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@soda-labs/MpcCore.sol";
+import "../lib/MpcCore.sol";
 
 // The provided Solidity contract is an implementation of an ERC20 token standard with enhanced privacy features. 
 // It aims to ensure the confidentiality of token transactions through encryption techniques while maintaining compatibility with the ERC20 standard.
@@ -17,7 +17,7 @@ import "@soda-labs/MpcCore.sol";
 // The contract provides multiple transfer methods, allowing token transfers in both encrypted and clear (unencrypted) forms. Transfers can occur between addresses with encrypted token values or clear token values.
 // Approval Mechanism:
 // An approval mechanism is implemented to allow token holders to grant spending permissions (allowances) to other addresses. Approvals are also encrypted to maintain transaction privacy.
-contract PrivateERC20Contract {
+contract PrivateERC20 {
 
     // Events are emitted for token transfers (Transfer) and approvals (Approval). These events provide transparency and allow external observers to track token movements within the contract.
     event Transfer(address indexed _from, address indexed _to, uint256 _value);

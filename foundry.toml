@@ -1,13 +1,10 @@
 [profile.default]
-src = "src"
+src = "contracts"
 out = "out"
-libs = ["lib", "src/lib"]
+libs = ['node_modules', 'lib']
+cache_path  = 'cache_forge'
+test = 'test'
+solc = "0.8.24"
+evm_version = "paris"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
-
-evm_version = "paris"
-solc = "0.8.24"
-
-scripts = [
-  { name = "deploy:sepolia", cmd = "script script/Counter.s.sol:Counter --broadcast --rpc-url ${SEPOLIA_RPC_URL}" }
-]

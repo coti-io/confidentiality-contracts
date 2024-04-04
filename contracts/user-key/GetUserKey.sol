@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@soda-labs/MpcCore.sol";
+import "../lib/MpcCore.sol";
 
 contract GetUserKey {
 

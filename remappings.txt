@@ -1,3 +1,2 @@
 forge-std/=lib/forge-std/src
 @openzeppelin=lib/openzeppelin-contracts
-@soda-labs=src/lib
