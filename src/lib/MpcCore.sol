@@ -35,6 +35,27 @@ struct itUint64 {
     bytes signature;
 }
 
+struct utBool {
+    ctBool ciphertext;
+    ctBool userCiphertext;
+}
+struct utUint8 {
+    ctUint8 ciphertext;
+    ctUint8 userCiphertext;
+}
+struct utUint16 {
+    ctUint16 ciphertext;
+    ctUint16 userCiphertext;
+}
+struct utUint32 {
+    ctUint32 ciphertext;
+    ctUint32 userCiphertext;
+}
+struct utUint64 {
+    ctUint64 ciphertext;
+    ctUint64 userCiphertext;
+}
+
 
 import "./MpcInterface.sol";
 
@@ -94,6 +115,11 @@ library MpcCore {
     function offBoardToUser(gtBool pt, address addr) internal returns (ctBool) {
           return ctBool.wrap(ExtendedOperations(MPC_PRECOMPILE).
             OffBoardToUser(bytes1(uint8(MPC_TYPE.SBOOL_T)), gtBool.unwrap(pt), abi.encodePacked(addr)));
+    }
+
+    function offBoardCombined(gtBool pt, address addr) internal returns (utBool memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
     }
 
     function setPublic(bool pt) internal returns (gtBool) {
@@ -170,6 +196,11 @@ library MpcCore {
     function offBoardToUser(gtUint8 pt, address addr) internal returns (ctUint8) {
           return ctUint8.wrap(ExtendedOperations(MPC_PRECOMPILE).
             OffBoardToUser(bytes1(uint8(MPC_TYPE.SUINT8_T)), gtUint8.unwrap(pt), abi.encodePacked(addr)));
+    }
+
+    function offBoardCombined(gtUint8 pt, address addr) internal returns (utUint8 memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
     }
 
     function setPublic8(uint8 pt) internal returns (gtUint8) {
@@ -314,6 +345,11 @@ library MpcCore {
             OffBoardToUser(bytes1(uint8(MPC_TYPE.SUINT16_T)), gtUint16.unwrap(pt), abi.encodePacked(addr)));
     }
 
+    function offBoardCombined(gtUint16 pt, address addr) internal returns (utUint16 memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
+    }
+
     function setPublic16(uint16 pt) internal returns (gtUint16) {
           return gtUint16.wrap(ExtendedOperations(MPC_PRECOMPILE).
             SetPublic(bytes1(uint8(MPC_TYPE.SUINT16_T)), uint256(pt)));
@@ -454,6 +490,11 @@ library MpcCore {
     function offBoardToUser(gtUint32 pt, address addr) internal returns (ctUint32) {
           return ctUint32.wrap(ExtendedOperations(MPC_PRECOMPILE).
             OffBoardToUser(bytes1(uint8(MPC_TYPE.SUINT32_T)), gtUint32.unwrap(pt), abi.encodePacked(addr)));
+    }
+    
+    function offBoardCombined(gtUint32 pt, address addr) internal returns (utUint32 memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
     }
 
     function setPublic32(uint32 pt) internal returns (gtUint32) {
@@ -596,6 +637,11 @@ library MpcCore {
     function offBoardToUser(gtUint64 pt, address addr) internal returns (ctUint64) {
           return ctUint64.wrap(ExtendedOperations(MPC_PRECOMPILE).
             OffBoardToUser(bytes1(uint8(MPC_TYPE.SUINT64_T)), gtUint64.unwrap(pt), abi.encodePacked(addr)));
+    }
+
+    function offBoardCombined(gtUint64 pt, address addr) internal returns (utUint64 memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
     }
 
     function setPublic64(uint64 pt) internal returns (gtUint64) {
