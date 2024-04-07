@@ -1,17 +1,17 @@
-## Privacy contracts for Coti V2
+## Privacy contracts for Coti V2 with examples
 
 ## Install - Forge
 
 ```shell
 # TODO: move the repo to the right org
-$ cargo add git@github.com:vladi-coti/privacy-contracts.git
+$ forge install git@github.com:vladi-coti/privacy-contracts.git
 ```
 
 ## Install - Hardhat
 
 ```shell
-# TODO: publish this repo as a package to npmjs
-$ yarn add <npm package>
+# TODO: move the repo to the right org
+$ yarn add git@github.com:vladi-coti/privacy-contracts.git
 ```
 
 ## Usage - Forge
