@@ -1,3 +1,5 @@
+require("@nomicfoundation/hardhat-ignition-ethers")
+
 const accounts = process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : undefined
 
 module.exports = {

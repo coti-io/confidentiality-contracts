@@ -11,3 +11,6 @@ coverage.json
 # Foundry
 /out
 /cache_forge
+
+# remove after deployment is fixed
+deployments 

@@ -2,9 +2,17 @@
   "name": "privacy-contracts",
   "version": "1.0.0",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "erc20": "yarn hardhat ignition deploy ignition/modules/private_erc20.js --network cotiv2"
+  },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-ignition": "^0.15.0",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.1",
+    "@nomicfoundation/ignition-core": "^0.15.0",
     "@openzeppelin/contracts": "^5.0.2",
+    "ethers": "^6.7.0",
     "hardhat": "^2.22.2"
   }
 }
