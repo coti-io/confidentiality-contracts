@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "erc20": "yarn hardhat ignition deploy ignition/modules/private_erc20.js --network cotiv2"
+    "erc20": "yarn hardhat ignition deploy ignition/modules/erc20/test_view.js --network cotiv2"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",

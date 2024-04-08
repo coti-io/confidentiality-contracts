@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {PrivateERC721} from "./PrivateERC721.sol";

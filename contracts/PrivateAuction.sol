@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.19;
 
-import "./lib/MpcCore.sol";
 import {PrivateERC20} from "./token/ERC20/PrivateERC20.sol";
+import "./lib/MpcCore.sol";
 
 contract PrivateAuction {
     uint public endTime;
