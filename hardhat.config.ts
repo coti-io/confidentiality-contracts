@@ -1,10 +1,11 @@
-require("@nomicfoundation/hardhat-ignition-ethers")
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 
 const accounts = process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : undefined
 
-module.exports = {
+const config: HardhatUserConfig = {
   defaultNetwork: "cotiv2",
-  solidity: "0.8.23",
+  solidity: "0.8.24",
   networks: {
     cotiv2: {
       url: "https://node.sodalabs.net",
@@ -12,4 +13,6 @@ module.exports = {
       accounts,
     },
   },
-}
+};
+
+export default config;
