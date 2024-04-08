@@ -3,17 +3,15 @@
 
 pragma solidity ^0.8.19;
 
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC165, ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IPrivateERC721} from "./IPrivateERC721.sol";
+import "../../lib/MpcCore.sol";
 
-import "../lib/MpcCore.sol";
-
-abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Errors {
+abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Errors {
     using Strings for uint256;
 
     // Token name
@@ -24,7 +22,7 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
 
     mapping(uint256 tokenId => address) private _owners;
 
-    mapping(address owner => uint256) private _balances;
+    mapping(address owner => utUint64) private _balances;
 
     mapping(uint256 tokenId => address) private _tokenApprovals;
 
@@ -42,71 +40,43 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IPrivateERC721).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
-     * @dev See {IERC721-balanceOf}.
+     * @dev See {IPrivateERC721-balanceOf}.
      */
-    function balanceOf(address owner) public view virtual returns (uint256) {
+    function balanceOf(address owner) public view virtual override returns (ctUint64) {
         if (owner == address(0) && owner != msg.sender) {
             revert ERC721InvalidOwner(owner);
         }
-        return _balances[owner];
+        return _balances[msg.sender].userCiphertext;
     }
 
     /**
-     * @dev See {IERC721-ownerOf}.
+     * @dev See {IPrivateERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         return _requireOwned(tokenId);
     }
 
-    /**
-     * @dev See {IERC721Metadata-name}.
-     */
     function name() public view virtual returns (string memory) {
         return _name;
     }
 
-    /**
-     * @dev See {IERC721Metadata-symbol}.
-     */
     function symbol() public view virtual returns (string memory) {
         return _symbol;
     }
 
     /**
-     * @dev See {IERC721Metadata-tokenURI}.
-     */
-    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
-        _requireOwned(tokenId);
-
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0 ? string.concat(baseURI, tokenId.toString()) : "";
-    }
-
-    /**
-     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
-     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
-     * by default, can be overridden in child contracts.
-     */
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
-    }
-
-    /**
-     * @dev See {IERC721-approve}.
+     * @dev See {IPrivateERC721-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual {
         _approve(to, tokenId, _msgSender());
     }
 
     /**
-     * @dev See {IERC721-getApproved}.
+     * @dev See {IPrivateERC721-getApproved}.
      */
     function getApproved(uint256 tokenId) public view virtual returns (address) {
         _requireOwned(tokenId);
@@ -115,21 +85,21 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
     }
 
     /**
-     * @dev See {IERC721-setApprovalForAll}.
+     * @dev See {IPrivateERC721-setApprovalForAll}.
      */
     function setApprovalForAll(address operator, bool approved) public virtual {
         _setApprovalForAll(_msgSender(), operator, approved);
     }
 
     /**
-     * @dev See {IERC721-isApprovedForAll}.
+     * @dev See {IPrivateERC721-isApprovedForAll}.
      */
     function isApprovedForAll(address owner, address operator) public view virtual returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
     /**
-     * @dev See {IERC721-transferFrom}.
+     * @dev See {IPrivateERC721-transferFrom}.
      */
     function transferFrom(address from, address to, uint256 tokenId) public virtual {
         if (to == address(0)) {
@@ -144,14 +114,14 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
     }
 
     /**
-     * @dev See {IERC721-safeTransferFrom}.
+     * @dev See {IPrivateERC721-safeTransferFrom}.
      */
     function safeTransferFrom(address from, address to, uint256 tokenId) public {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
-     * @dev See {IERC721-safeTransferFrom}.
+     * @dev See {IPrivateERC721-safeTransferFrom}.
      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
         transferFrom(from, to, tokenId);
@@ -227,19 +197,22 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
             _checkAuthorized(from, auth, tokenId);
         }
 
+        (gtUint64 fromBalance, gtUint64 toBalance) = _getBalances(from, to);
+        (gtUint64 newFromBalance, gtUint64 newToBalance,) = MpcCore.transfer(fromBalance, toBalance, MpcCore.setPublic64(1));
+
         // Execute the update
         if (from != address(0)) {
             // Clear approval. No need to re-authorize or emit the Approval event
             _approve(address(0), tokenId, address(0), false);
 
             unchecked {
-                _balances[from] -= 1;
+                _balances[from] = MpcCore.offBoardCombined(newFromBalance, from);
             }
         }
 
         if (to != address(0)) {
             unchecked {
-                _balances[to] += 1;
+                _balances[to] = MpcCore.offBoardCombined(newToBalance, to);
             }
         }
 
@@ -248,6 +221,28 @@ abstract contract PrivateERC721 is Context, ERC165, IERC721, IERC721Metadata, IE
         emit Transfer(from, to, tokenId);
 
         return from;
+    }
+
+    // Returns the encrypted balances of the two addresses
+    function _getBalances(address _from, address _to) private returns (gtUint64, gtUint64){
+        ctUint64 fromBalance = _balances[_from].ciphertext;
+        ctUint64 toBalance = _balances[_to].ciphertext;
+
+        gtUint64 gtFromBalance;
+        gtUint64 gtToBalance;
+        if (ctUint64.unwrap(fromBalance) == 0){// 0 means that no allowance has been set
+            gtFromBalance = MpcCore.setPublic64(0);
+        } else {
+            gtFromBalance = MpcCore.onBoard(fromBalance);
+        }
+
+        if (ctUint64.unwrap(toBalance) == 0){// 0 means that no allowance has been set
+            gtToBalance = MpcCore.setPublic64(0);
+        } else {
+            gtToBalance = MpcCore.onBoard(toBalance);
+        }
+
+        return (gtFromBalance, gtToBalance);
     }
 
     /**

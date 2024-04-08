@@ -4,7 +4,7 @@ const accounts = process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : undefined
 
 module.exports = {
   defaultNetwork: "cotiv2",
-  solidity: "0.8.24",
+  solidity: "0.8.23",
   networks: {
     cotiv2: {
       url: "https://node.sodalabs.net",
