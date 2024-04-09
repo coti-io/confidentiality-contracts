@@ -8,10 +8,15 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC165, ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import {IPrivateERC721} from "./IPrivateERC721.sol";
+import {IConfidentialERC721} from "./IConfidentialERC721.sol";
 import "../../lib/MpcCore.sol";
 
-abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Errors {
+abstract contract ConfidentialERC721 is
+    Context,
+    ERC165,
+    IConfidentialERC721,
+    IERC721Errors
+{
     using Strings for uint256;
 
     // Token name
@@ -26,7 +31,8 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
 
     mapping(uint256 tokenId => address) private _tokenApprovals;
 
-    mapping(address owner => mapping(address operator => bool)) private _operatorApprovals;
+    mapping(address owner => mapping(address operator => bool))
+        private _operatorApprovals;
 
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
@@ -39,14 +45,20 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IPrivateERC721).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165, IERC165) returns (bool) {
+        return
+            interfaceId == type(IConfidentialERC721).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**
-     * @dev See {IPrivateERC721-balanceOf}.
+     * @dev See {IConfidentialERC721-balanceOf}.
      */
-    function balanceOf(address owner) public view virtual override returns (ctUint64) {
+    function balanceOf(
+        address owner
+    ) public view virtual override returns (ctUint64) {
         if (owner == address(0) && owner != msg.sender) {
             revert ERC721InvalidOwner(owner);
         }
@@ -54,7 +66,7 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     }
 
     /**
-     * @dev See {IPrivateERC721-ownerOf}.
+     * @dev See {IConfidentialERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         return _requireOwned(tokenId);
@@ -69,39 +81,48 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     }
 
     /**
-     * @dev See {IPrivateERC721-approve}.
+     * @dev See {IConfidentialERC721-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual {
         _approve(to, tokenId, _msgSender());
     }
 
     /**
-     * @dev See {IPrivateERC721-getApproved}.
+     * @dev See {IConfidentialERC721-getApproved}.
      */
-    function getApproved(uint256 tokenId) public view virtual returns (address) {
+    function getApproved(
+        uint256 tokenId
+    ) public view virtual returns (address) {
         _requireOwned(tokenId);
 
         return _getApproved(tokenId);
     }
 
     /**
-     * @dev See {IPrivateERC721-setApprovalForAll}.
+     * @dev See {IConfidentialERC721-setApprovalForAll}.
      */
     function setApprovalForAll(address operator, bool approved) public virtual {
         _setApprovalForAll(_msgSender(), operator, approved);
     }
 
     /**
-     * @dev See {IPrivateERC721-isApprovedForAll}.
+     * @dev See {IConfidentialERC721-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator) public view virtual returns (bool) {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
     /**
-     * @dev See {IPrivateERC721-transferFrom}.
+     * @dev See {IConfidentialERC721-transferFrom}.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual {
         if (to == address(0)) {
             revert ERC721InvalidReceiver(address(0));
         }
@@ -114,16 +135,25 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     }
 
     /**
-     * @dev See {IPrivateERC721-safeTransferFrom}.
+     * @dev See {IConfidentialERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
-     * @dev See {IPrivateERC721-safeTransferFrom}.
+     * @dev See {IConfidentialERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public virtual {
         transferFrom(from, to, tokenId);
         _checkOnERC721Received(from, to, tokenId, data);
     }
@@ -143,7 +173,9 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     /**
      * @dev Returns the approved address for `tokenId`. Returns 0 if `tokenId` is not minted.
      */
-    function _getApproved(uint256 tokenId) internal view virtual returns (address) {
+    function _getApproved(
+        uint256 tokenId
+    ) internal view virtual returns (address) {
         return _tokenApprovals[tokenId];
     }
 
@@ -154,10 +186,16 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * WARNING: This function assumes that `owner` is the actual owner of `tokenId` and does not verify this
      * assumption.
      */
-    function _isAuthorized(address owner, address spender, uint256 tokenId) internal view virtual returns (bool) {
+    function _isAuthorized(
+        address owner,
+        address spender,
+        uint256 tokenId
+    ) internal view virtual returns (bool) {
         return
             spender != address(0) &&
-            (owner == spender || isApprovedForAll(owner, spender) || _getApproved(tokenId) == spender);
+            (owner == spender ||
+                isApprovedForAll(owner, spender) ||
+                _getApproved(tokenId) == spender);
     }
 
     /**
@@ -168,7 +206,11 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * WARNING: This function assumes that `owner` is the actual owner of `tokenId` and does not verify this
      * assumption.
      */
-    function _checkAuthorized(address owner, address spender, uint256 tokenId) internal view virtual {
+    function _checkAuthorized(
+        address owner,
+        address spender,
+        uint256 tokenId
+    ) internal view virtual {
         if (!_isAuthorized(owner, spender, tokenId)) {
             if (owner == address(0)) {
                 revert ERC721NonexistentToken(tokenId);
@@ -189,7 +231,11 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      *
      * NOTE: If overriding this function in a way that tracks balances, see also {_increaseBalance}.
      */
-    function _update(address to, uint256 tokenId, address auth) internal virtual returns (address) {
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal virtual returns (address) {
         address from = _ownerOf(tokenId);
 
         // Perform (optional) operator check
@@ -198,7 +244,11 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
         }
 
         (gtUint64 fromBalance, gtUint64 toBalance) = _getBalances(from, to);
-        (gtUint64 newFromBalance, gtUint64 newToBalance,) = MpcCore.transfer(fromBalance, toBalance, MpcCore.setPublic64(1));
+        (gtUint64 newFromBalance, gtUint64 newToBalance, ) = MpcCore.transfer(
+            fromBalance,
+            toBalance,
+            MpcCore.setPublic64(1)
+        );
 
         // Execute the update
         if (from != address(0)) {
@@ -206,7 +256,10 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
             _approve(address(0), tokenId, address(0), false);
 
             unchecked {
-                _balances[from] = MpcCore.offBoardCombined(newFromBalance, from);
+                _balances[from] = MpcCore.offBoardCombined(
+                    newFromBalance,
+                    from
+                );
             }
         }
 
@@ -224,19 +277,24 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     }
 
     // Returns the encrypted balances of the two addresses
-    function _getBalances(address _from, address _to) private returns (gtUint64, gtUint64){
+    function _getBalances(
+        address _from,
+        address _to
+    ) private returns (gtUint64, gtUint64) {
         ctUint64 fromBalance = _balances[_from].ciphertext;
         ctUint64 toBalance = _balances[_to].ciphertext;
 
         gtUint64 gtFromBalance;
         gtUint64 gtToBalance;
-        if (ctUint64.unwrap(fromBalance) == 0){// 0 means that no allowance has been set
+        if (ctUint64.unwrap(fromBalance) == 0) {
+            // 0 means that no allowance has been set
             gtFromBalance = MpcCore.setPublic64(0);
         } else {
             gtFromBalance = MpcCore.onBoard(fromBalance);
         }
 
-        if (ctUint64.unwrap(toBalance) == 0){// 0 means that no allowance has been set
+        if (ctUint64.unwrap(toBalance) == 0) {
+            // 0 means that no allowance has been set
             gtToBalance = MpcCore.setPublic64(0);
         } else {
             gtToBalance = MpcCore.onBoard(toBalance);
@@ -285,7 +343,11 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * @dev Same as {xref-ERC721-_safeMint-address-uint256-}[`_safeMint`], with an additional `data` parameter which is
      * forwarded in {IERC721Receiver-onERC721Received} to contract recipients.
      */
-    function _safeMint(address to, uint256 tokenId, bytes memory data) internal virtual {
+    function _safeMint(
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) internal virtual {
         _mint(to, tokenId);
         _checkOnERC721Received(address(0), to, tokenId, data);
     }
@@ -358,7 +420,12 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * @dev Same as {xref-ERC721-_safeTransfer-address-address-uint256-}[`_safeTransfer`], with an additional `data` parameter which is
      * forwarded in {IERC721Receiver-onERC721Received} to contract recipients.
      */
-    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory data) internal virtual {
+    function _safeTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) internal virtual {
         _transfer(from, to, tokenId);
         _checkOnERC721Received(from, to, tokenId, data);
     }
@@ -381,13 +448,22 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * @dev Variant of `_approve` with an optional flag to enable or disable the {Approval} event. The event is not
      * emitted in the context of transfers.
      */
-    function _approve(address to, uint256 tokenId, address auth, bool emitEvent) internal virtual {
+    function _approve(
+        address to,
+        uint256 tokenId,
+        address auth,
+        bool emitEvent
+    ) internal virtual {
         // Avoid reading the owner unless necessary
         if (emitEvent || auth != address(0)) {
             address owner = _requireOwned(tokenId);
 
             // We do not use _isAuthorized because single-token approvals should not be able to call approve
-            if (auth != address(0) && owner != auth && !isApprovedForAll(owner, auth)) {
+            if (
+                auth != address(0) &&
+                owner != auth &&
+                !isApprovedForAll(owner, auth)
+            ) {
                 revert ERC721InvalidApprover(auth);
             }
 
@@ -407,7 +483,11 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      *
      * Emits an {ApprovalForAll} event.
      */
-    function _setApprovalForAll(address owner, address operator, bool approved) internal virtual {
+    function _setApprovalForAll(
+        address owner,
+        address operator,
+        bool approved
+    ) internal virtual {
         if (operator == address(0)) {
             revert ERC721InvalidOperator(operator);
         }
@@ -430,7 +510,7 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
     }
 
     /**
-     * @dev Private function to invoke {IERC721Receiver-onERC721Received} on a target address. This will revert if the
+     * @dev Confidential function to invoke {IERC721Receiver-onERC721Received} on a target address. This will revert if the
      * recipient doesn't accept the token transfer. The call is not executed if the target address is not a contract.
      *
      * @param from address representing the previous owner of the given token ID
@@ -438,9 +518,21 @@ abstract contract PrivateERC721 is Context, ERC165, IPrivateERC721, IERC721Error
      * @param tokenId uint256 ID of the token to be transferred
      * @param data bytes optional data to send along with the call
      */
-    function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory data) private {
+    function _checkOnERC721Received(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) private {
         if (to.code.length > 0) {
-            try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, data) returns (bytes4 retval) {
+            try
+                IERC721Receiver(to).onERC721Received(
+                    _msgSender(),
+                    from,
+                    tokenId,
+                    data
+                )
+            returns (bytes4 retval) {
                 if (retval != IERC721Receiver.onERC721Received.selector) {
                     revert ERC721InvalidReceiver(to);
                 }

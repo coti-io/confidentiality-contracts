@@ -2,7 +2,7 @@ import { block_size, decrypt, prepareIT, hexBase } from "../../../soda-sdk/js/cr
 import { SodaWeb3Helper, REMOTE_HTTP_PROVIDER_URL } from "../../../lib/js/sodaWeb3Helper.mjs"
 
 const FILE_PATH = "examples/contracts/"
-const IDENTITY_FILE_NAME = "PrivateIdentityRegistry.sol"
+const IDENTITY_FILE_NAME = "ConfidentialIdentityRegistry.sol"
 
 function checkExpectedResult(name, expectedResult, result) {
   if (result === expectedResult) {
@@ -87,7 +87,7 @@ async function main() {
   await sodaHelper.callContractFunctionTransaction(func)
   console.log("************* Identifier Set *************")
 
-  await sodaHelper.callContractTransaction(contractId, "grantAccess", [account.address, ['age']])
+  await sodaHelper.callContractTransaction(contractId, "grantAccess", [account.address, ["age"]])
 
   let age = await sodaHelper.callContractView(contractId, "getIdentifier", [account.address, "age"])
   checkExpectedResult("age", plaintext_identifier, decryptValue(age, user_key))

@@ -1,8 +1,8 @@
 import { block_size, decrypt, prepareIT, hexBase } from "../../../soda-sdk/js/crypto.js"
 import { SodaWeb3Helper, REMOTE_HTTP_PROVIDER_URL } from "../../../lib/js/sodaWeb3Helper.mjs"
 
-const ERC20_FILE_NAME = "PrivateERC20Contract.sol"
-const AUCTION_FILE_NAME = "PrivateAuction.sol"
+const ERC20_FILE_NAME = "ConfidentialERC20Contract.sol"
+const AUCTION_FILE_NAME = "ConfidentialAuction.sol"
 const FILE_PATH = "examples/contracts/"
 
 function checkExpectedResult(name, expectedResult, result) {
@@ -69,12 +69,7 @@ async function main() {
 
   const BENEFICIARY_ADDRESS = process.env.BENEFICIARY_ADDRESS
   // Deploy the contract
-  let receipt = await sodaHelper.deployContract("private_auction", [
-    BENEFICIARY_ADDRESS,
-    tokenContractAddress,
-    60 * 60 * 24,
-    true,
-  ])
+  let receipt = await sodaHelper.deployContract("private_auction", [BENEFICIARY_ADDRESS, tokenContractAddress, 60 * 60 * 24, true])
   if (!receipt) {
     console.log("Failed to deploy the auction contract")
     return
@@ -86,10 +81,10 @@ async function main() {
 
   const endTime = await sodaHelper.callContractView("private_auction", "endTime")
   console.log("Function call result endTime:", endTime)
-  
+
   const contractOwner = await sodaHelper.callContractView("private_auction", "contractOwner")
   console.log("Function call result contractOwner:", contractOwner)
-  
+
   const beneficiary = await sodaHelper.callContractView("private_auction", "beneficiary")
   console.log("Function call result beneficiary:", beneficiary)
 
@@ -100,14 +95,14 @@ async function main() {
   const auctionContract = sodaHelper.getContract("private_auction")
   const account = sodaHelper.getAccount()
   const plaintext_bid = 5
-  const dummyCT = 0;
-  const dummySignature = Buffer.alloc(65);
+  const dummyCT = 0
+  const dummySignature = Buffer.alloc(65)
 
   console.log("************* Approve IT 50 to my address *************")
   // Approve 50 SOD to this account
   let func = tokenContract.methods.approve(auctionContract.options.address, dummyCT, dummySignature) // Dummy function to get the signature
   let hashFuncSig = getFunctionSignature(func)
-  let {ctInt, signature} = prepareIT(
+  let { ctInt, signature } = prepareIT(
     50,
     user_key,
     account.address,
@@ -123,30 +118,44 @@ async function main() {
   await checkAllowance(account.address, auctionContract.options.address, tokenContract, user_key, 50)
 
   console.log("************* Bid IT ", plaintext_bid, " *************")
-  func = auctionContract.methods.bid(dummyCT, dummySignature);
-  hashFuncSig = getFunctionSignature(func);
-  ;({ ctInt, signature } = prepareIT(plaintext_bid, user_key, account.address, auctionContract.options.address, hashFuncSig, Buffer.from(SIGNING_KEY.slice(2), 'hex')));
-  func = auctionContract.methods.bid(ctInt, signature);
+  func = auctionContract.methods.bid(dummyCT, dummySignature)
+  hashFuncSig = getFunctionSignature(func)
+  ;({ ctInt, signature } = prepareIT(
+    plaintext_bid,
+    user_key,
+    account.address,
+    auctionContract.options.address,
+    hashFuncSig,
+    Buffer.from(SIGNING_KEY.slice(2), "hex")
+  ))
+  func = auctionContract.methods.bid(ctInt, signature)
   await sodaHelper.callContractFunctionTransaction(func)
 
   let bid = await sodaHelper.callContractView("private_auction", "getBid")
-  checkExpectedResult('bid', plaintext_bid, decryptValue(bid, user_key))
+  checkExpectedResult("bid", plaintext_bid, decryptValue(bid, user_key))
 
   const plaintext_bid2 = 10
   console.log("************* Increase bid IT ", plaintext_bid2, " *************")
-  func = auctionContract.methods.bid(dummyCT, dummySignature);
-  hashFuncSig = getFunctionSignature(func);
-  ;({ ctInt, signature } = prepareIT(plaintext_bid2, user_key, account.address, auctionContract.options.address, hashFuncSig, Buffer.from(SIGNING_KEY.slice(2), 'hex')));
-  func = auctionContract.methods.bid(ctInt, signature);
+  func = auctionContract.methods.bid(dummyCT, dummySignature)
+  hashFuncSig = getFunctionSignature(func)
+  ;({ ctInt, signature } = prepareIT(
+    plaintext_bid2,
+    user_key,
+    account.address,
+    auctionContract.options.address,
+    hashFuncSig,
+    Buffer.from(SIGNING_KEY.slice(2), "hex")
+  ))
+  func = auctionContract.methods.bid(ctInt, signature)
   await sodaHelper.callContractFunctionTransaction(func)
 
   bid = await sodaHelper.callContractView("private_auction", "getBid")
-  checkExpectedResult('increase bid', plaintext_bid2, decryptValue(bid, user_key))
+  checkExpectedResult("increase bid", plaintext_bid2, decryptValue(bid, user_key))
 
   await sodaHelper.callContractTransaction("private_auction", "stop")
 
   const isHighestBid = await sodaHelper.callContractView("private_auction", "doIHaveHighestBid")
-  checkExpectedResult('is highest', 1, decryptValue(isHighestBid, user_key))
+  checkExpectedResult("is highest", 1, decryptValue(isHighestBid, user_key))
 
   // const highestBid = await sodaHelper.callContractView("private_auction", "getHighestBid")
   // checkExpectedResult('highest', 10, decryptValue(highestBid, user_key))

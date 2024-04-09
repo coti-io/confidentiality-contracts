@@ -31,14 +31,15 @@ $ forge test
 ### Deploy - Forge
 
 #### Script
+
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
 
 $ source .env; forge script script/Counter.s.sol:CounterScript --rpc-url $SEPOLIA_RPC_URL #--broadcast
-$ source .env; forge script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url $SODALABS_NODE_RPC_URL --legacy --skip-simulation --broadcast
+$ source .env; forge script script/ConfidentialERC20.s.sol:ConfidentialERC20Script --rpc-url $SODALABS_NODE_RPC_URL --legacy --skip-simulation --broadcast
 
 # run on forked forge with CotiV2 support
-$ cargo run --manifest-path /Users/Vlad1/coti/foundry/crates/forge/Cargo.toml script script/PrivateERC20.s.sol:PrivateERC20Script --rpc-url "https://node.sodalabs.net" --legacy --broadcast --skip-simulation --slow
+$ cargo run --manifest-path /Users/Vlad1/coti/foundry/crates/forge/Cargo.toml script script/ConfidentialERC20.s.sol:ConfidentialERC20Script --rpc-url "https://node.sodalabs.net" --legacy --broadcast --skip-simulation --slow
 ```
 
 ## Usage - Hardhat

@@ -27,7 +27,7 @@ function decryptValue(myCTBalance: any, userKey: any) {
   return decryptedBalance;
 }
 
-describe("Private ERC20", function () {
+describe("Confidential ERC20", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -45,7 +45,7 @@ describe("Private ERC20", function () {
   async function deploy() {
     const [owner, otherAccount] = await hre.ethers.getSigners();
 
-    const tokenContract = await hre.ethers.getContractFactory("PrivateERC20");
+    const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20");
     const token = await tokenContract.deploy("Soda", "SOD", 500000000, { gasLimit: 12000000 });
     const contract = await token.waitForDeployment();
     return { contract, address: await contract.getAddress(), owner, otherAccount };

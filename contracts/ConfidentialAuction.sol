@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.19;
 
-import {PrivateERC20} from "./token/ERC20/PrivateERC20.sol";
+import {ConfidentialERC20} from "./token/ERC20/ConfidentialERC20.sol";
 import "./lib/MpcCore.sol";
 
-contract PrivateAuction {
+contract ConfidentialAuction {
     uint public endTime;
 
     address public beneficiary;
@@ -20,7 +20,7 @@ contract PrivateAuction {
     uint public bidCounter;
 
     // The token contract used for encrypted bids.
-    PrivateERC20 public tokenContract;
+    ConfidentialERC20 public tokenContract;
 
     // Whether the auction object has been claimed.
     ctBool internal objectClaimed;
@@ -46,7 +46,7 @@ contract PrivateAuction {
 
     constructor(
         address _beneficiary,
-        PrivateERC20 _tokenContract,
+        ConfidentialERC20 _tokenContract,
         uint biddingTime,
         bool isStoppable
     ) {

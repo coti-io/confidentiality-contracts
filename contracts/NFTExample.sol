@@ -1,20 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {PrivateERC721} from "./token/ERC721/PrivateERC721.sol";
-import {PrivateERC721URIStorage} from "./token/ERC721/PrivateERC721URIStorage.sol";
+import {ConfidentialERC721} from "./token/ERC721/ConfidentialERC721.sol";
+import {ConfidentialERC721URIStorage} from "./token/ERC721/ConfidentialERC721URIStorage.sol";
 import "./lib/MpcCore.sol";
 
-contract NFTExample is PrivateERC721, PrivateERC721URIStorage {
-    constructor() PrivateERC721("Example", "EXL") {}
+contract NFTExample is ConfidentialERC721, ConfidentialERC721URIStorage {
+    constructor() ConfidentialERC721("Example", "EXL") {}
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(PrivateERC721, PrivateERC721URIStorage) returns (bool) {
-        return interfaceId == type(PrivateERC721URIStorage).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        virtual
+        override(ConfidentialERC721, ConfidentialERC721URIStorage)
+        returns (bool)
+    {
+        return
+            interfaceId == type(ConfidentialERC721URIStorage).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
-    function setTokenURI(uint256 tokenId, ctUint64 _itTokenURI, bytes calldata _itSignature) public {
+    function setTokenURI(
+        uint256 tokenId,
+        ctUint64 _itTokenURI,
+        bytes calldata _itSignature
+    ) public {
         _requireOwned(tokenId);
-        
+
         itUint64 memory it;
         it.ciphertext = _itTokenURI;
         it.signature = _itSignature;
@@ -22,7 +36,16 @@ contract NFTExample is PrivateERC721, PrivateERC721URIStorage {
         _setTokenURI(tokenId, MpcCore.validateCiphertext(it));
     }
 
-    function _update(address to, uint256 tokenId, address auth) internal virtual override(PrivateERC721, PrivateERC721URIStorage) returns (address) {
-        return PrivateERC721URIStorage._update(to, tokenId, auth);
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    )
+        internal
+        virtual
+        override(ConfidentialERC721, ConfidentialERC721URIStorage)
+        returns (address)
+    {
+        return ConfidentialERC721URIStorage._update(to, tokenId, auth);
     }
 }

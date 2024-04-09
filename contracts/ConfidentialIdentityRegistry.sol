@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "./lib/MpcCore.sol";
 
-contract PrivateIdentityRegistry is Ownable2Step {
+contract ConfidentialIdentityRegistry is Ownable2Step {
     uint constant MAX_IDENTIFIERS_LENGTH = 20;
 
     // A mapping from wallet to registrarId
