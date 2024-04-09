@@ -1,70 +1,95 @@
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import { block_size, decrypt, prepareIT, hexBase } from "../soda-sdk/js/crypto.js";
-import { expect } from "chai";
-import hre from "hardhat";
+import hre from "hardhat"
+import { expect } from "chai"
+// import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
+import { decryptValue, prepareIT } from "./util/crypto"
 
-const user_key = Buffer.from(process.env.USER_KEY ?? "", "hex");
+const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
 
-function decryptValue(myCTBalance: any, userKey: any) {
-  // Convert CT to bytes
-  let ctString = myCTBalance.toString(hexBase);
-  let ctArray = Buffer.from(ctString, "hex");
-  while (ctArray.length < 32) {
-    // When the first bits are 0, bigint bit size is less than 32 and need to re-add the bits
-    ctString = "0" + ctString;
-    ctArray = Buffer.from(ctString, "hex");
-  }
-  // Split CT into two 128-bit arrays r and cipher
-  const cipher = ctArray.subarray(0, block_size);
-  const r = ctArray.subarray(block_size);
+async function deploy() {
+  const [owner] = await hre.ethers.getSigners()
+  const otherAccount = hre.ethers.Wallet.createRandom(hre.ethers.provider)
 
-  // Decrypt the cipher
-  const decryptedMessage = decrypt(userKey, r, cipher);
+  const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20")
+  const { name, symbol, initialSupply } = deploymentInfo
+  const token = await tokenContract.deploy(name, symbol, initialSupply, { gasLimit: 12000000, from: owner.address })
+  const contract = await token.waitForDeployment()
+  return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
+}
 
-  // console.log the decrypted cipher
-  const decryptedBalance = parseInt(decryptedMessage.toString("hex"), block_size);
-
-  return decryptedBalance;
+async function expectBalance(contract: Awaited<ReturnType<typeof deploy>>["contract"], amount: number) {
+  const ctBalance = await contract.balanceOf()
+  let my_balance = decryptValue(ctBalance)
+  expect(my_balance).to.equal(amount)
 }
 
 describe("Confidential ERC20", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  let deployment: Awaited<ReturnType<typeof deploy>>;
+  let deployment: Awaited<ReturnType<typeof deploy>>
 
   before(async function () {
-    const balance = await hre.ethers.provider.getBalance("0x40a60fF0F7bab9720BA6B7542d4480C9f4F7Ee8E");
-    console.log("balance before: ", balance.toString());
-    deployment = await deploy();
-
-    const balanceAfter = await hre.ethers.provider.getBalance("0x40a60fF0F7bab9720BA6B7542d4480C9f4F7Ee8E");
-    console.log("balance after: ", balanceAfter.toString());
-  });
-
-  async function deploy() {
-    const [owner, otherAccount] = await hre.ethers.getSigners();
-
-    const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20");
-    const token = await tokenContract.deploy("Soda", "SOD", 500000000, { gasLimit: 12000000 });
-    const contract = await token.waitForDeployment();
-    return { contract, address: await contract.getAddress(), owner, otherAccount };
-  }
+    deployment = await deploy()
+  })
 
   describe("Deployment", function () {
     it("Deployed address should not be undefined", async function () {
-      const { address } = deployment;
+      const { contractAddress } = deployment
 
-      expect(address).to.not.equal(undefined);
-    });
+      expect(contractAddress).to.not.equal(undefined)
+    })
 
-    it("Sender should have all the tokens", async function () {
-      const { contract } = deployment;
+    it("Owner initial balance", async function () {
+      const { contract } = deployment
 
-      const my_CTBalance = await contract.balanceOf();
+      const my_CTBalance = await contract.balanceOf()
 
-      let my_balance = decryptValue(my_CTBalance, user_key);
-      expect(my_balance).to.equal(500000000);
-    });
-  });
-});
+      let my_balance = decryptValue(my_CTBalance)
+      expect(my_balance).to.equal(deploymentInfo.initialSupply)
+    })
+
+    it("Function 'name' should be correct", async function () {
+      expect(await deployment.contract.name()).to.equal(deploymentInfo.name)
+    })
+
+    it("Function 'symbol' should be correct", async function () {
+      expect(await deployment.contract.symbol()).to.equal(deploymentInfo.symbol)
+    })
+
+    it("Function 'decimals' should be correct", async function () {
+      expect(await deployment.contract.decimals()).to.equal(deploymentInfo.decimals)
+    })
+
+    it("Function 'totalSupply' should be correct", async function () {
+      expect(await deployment.contract.totalSupply()).to.equal(deploymentInfo.initialSupply)
+    })
+  })
+
+  const transferAmount = 5
+  describe(`Transfer $${transferAmount}`, function () {
+    it("Transfer clear", async function () {
+      const { contract, owner, otherAccount } = deployment
+
+      await (
+        await contract.connect(owner)["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit: 12000000 })
+      ).wait()
+
+      await expectBalance(contract, deploymentInfo.initialSupply - transferAmount)
+
+      await (
+        await contract.connect(owner)["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit: 12000000 })
+      ).wait()
+
+      await expectBalance(contract, deploymentInfo.initialSupply - 2 * transferAmount)
+    })
+
+    it.only("Transfer", async function () {
+      const { contract, contractAddress, owner, otherAccount } = deployment
+
+      const selector = contract["transfer(address,uint256,bytes,bool)"].fragment.selector
+      console.log(`selector ${selector}`)
+
+      const { ctInt, signature } = await prepareIT(transferAmount.toString(), owner, contractAddress, selector)
+      await (
+        await contract.connect(owner)["transfer(address,uint256,bytes,bool)"](otherAccount.address, ctInt, signature, true, { gasLimit: 12000000 })
+      ).wait()
+    })
+  })
+})

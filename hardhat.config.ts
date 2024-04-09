@@ -1,5 +1,5 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+import { HardhatUserConfig } from "hardhat/config"
+import "@nomicfoundation/hardhat-toolbox"
 
 const accounts = process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : undefined
 
@@ -13,6 +13,6 @@ const config: HardhatUserConfig = {
       accounts,
     },
   },
-};
+}
 
-export default config;
+export default config
