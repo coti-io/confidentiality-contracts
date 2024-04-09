@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "yarn hardhat test",
-    "erc20": "yarn hardhat ignition deploy ignition/modules/erc20/test_view.js --network cotiv2"
+    "test": "yarn hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
