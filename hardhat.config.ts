@@ -7,6 +7,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "cotiv2",
   solidity: "0.8.24",
   networks: {
+    // hardhat: {},
     cotiv2: {
       url: "https://node.sodalabs.net",
       chainId: 50505050,

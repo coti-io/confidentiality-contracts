@@ -1,5 +1,6 @@
+import hre from "hardhat"
 import crypto from "crypto"
-import { Signer, solidityPackedKeccak256, getBytes, Signature, Wallet } from "ethers"
+import { Signer, solidityPackedKeccak256, Signature, getBytes, verifyMessage } from "ethers"
 // import {e} from "ethers"
 
 const block_size = 16 // AES block size in bytes
@@ -92,63 +93,50 @@ export function decryptValue(myCTBalance: bigint) {
   // Decrypt the cipher
   const decryptedMessage = decrypt(user_key, r, cipher)
 
-  // console.log the decrypted cipher
-  const decryptedBalance = parseInt(decryptedMessage.toString("hex"), block_size)
-
-  return decryptedBalance
+  return parseInt(decryptedMessage.toString("hex"), block_size)
 }
 
 export async function prepareIT(
-  plaintext: string,
+  plaintext: bigint,
   sender: Signer & { address: string },
   contractAddress: string,
-  contract: any,
   functionSelector: string
 ) {
-  // Get the bytes of the sender, contract, and function signature
-  // const senderBytes = toBuffer(sender)
-  // const contractBytes = toBuffer(contractAddress)
-
   // Convert the plaintext to bytes
   const plaintextBytes = Buffer.alloc(8) // Allocate a buffer of size 8 bytes
-  plaintextBytes.writeBigUInt64BE(BigInt(plaintext)) // Write the uint64 value to the buffer as little-endian
+  plaintextBytes.writeBigUInt64BE(plaintext) // Write the uint64 value to the buffer as little-endian
 
   // Encrypt the plaintext using AES key
   const { ciphertext, r } = encrypt(user_key, plaintextBytes)
   console.log(`ciphertext: ${ciphertext.toString("hex")}`)
-  let ct = Buffer.from("239b1296bcf08ebac779beeba66d28f99efe264d45d087f2c3800c243b8792d0", "hex") //Buffer.concat([ciphertext, r])
+  const ct = Buffer.from("239b1296bcf08ebac779beeba66d28f99efe264d45d087f2c3800c243b8792d0", "hex") //Buffer.concat([ciphertext, r])
   console.log(`ct: ${ct.toString("hex")}`)
 
-  const hash = solidityPackedKeccak256(
+  const message = solidityPackedKeccak256(
     ["address", "address", "bytes4", "uint256"],
     [sender.address, contractAddress, functionSelector, BigInt("0x" + ct.toString("hex"))]
   )
+  console.log(`message: ${message}`)
+  const hash = getBytes(message)
 
-  console.log(`hash: ${hash}`)
   const signature = await sender.signMessage(hash)
+  const verified = verifyMessage(hash, signature)
+  console.log(`verified: ${verified}`)
   console.log(`signature: ${signature}`)
 
-  const sig = Signature.from(signature)
+  // const sig = Signature.from(signature)
 
-  // If the signature matches the EIP-2098 format, a Signature
-  // can be passed as the struct value directly, since the
-  // parser will pull out the matching struct keys from sig.
-  console.log(await contract.recoverStringFromCompact(hash, sig))
-  // '0x0A489345F9E9bc5254E18dd14fA7ECfDB2cE5f21'
+  // let rBytes = Buffer.from(sig.r)
+  // let sBytes = Buffer.from(sig.s)
+  // let vByte = Buffer.from([sig.v - 27])
 
-  // Likewise, if the struct keys match an expanded signature
-  // struct, it can also be passed as the struct value directly.
-  console.log(await contract.recoverStringFromExpanded(hash, sig))
-  // '0x0A489345F9E9bc5254E18dd14fA7ECfDB2cE5f21'
+  // console.log(`sig.r ${sig.r}`)
+  // console.log(`sig.s ${sig.s}`)
+  // console.log(`sig.v ${(sig.v - 27)}`)
+  // const sig2 = Buffer.concat([rBytes, sBytes, vByte])
+  // console.log(`sig2: ${sig2.toString('hex')}`)
 
-  // If using an older API which requires the v, r and s be passed
-  // separately, those members are present on the Signature.
-  console.log(await contract.recoverStringFromVRS(hash, sig.v, sig.r, sig.s))
-  // '0x0A489345F9E9bc5254E18dd14fA7ECfDB2cE5f21'
-
-  // Or if using an API that expects a raw signature.
-  console.log(await contract.recoverStringFromRaw(hash, signature))
-  // '0x0A489345F9E9bc5254E18dd14fA7ECfDB2cE5f21'
+  await testRecover(signature, hash)
 
   // // Sign the message
   // const signature = signIT(senderBytes, contractBytes, functionSelector, ct, signingKey)
@@ -159,3 +147,40 @@ export async function prepareIT(
 
   return { ctInt, signature }
 }
+
+async function testRecover(signature: string, message: Uint8Array) {
+  const contract = await (await (await hre.ethers.getContractFactory("RecoverMessage")).deploy()).waitForDeployment()
+  // const contract = await hre.ethers.getContractAt("RecoverMessage", "0x4F9dE3A24449d80Aa0EE8a9021474555a7dCcD00")
+  // console.log(`contract address ${await contract.getAddress()}`)
+  const sig = Signature.from(signature)
+
+  // If the signature matches the EIP-2098 format, a Signature
+  // can be passed as the struct value directly, since the
+  // parser will pull out the matching struct keys from sig.
+  console.log(await contract.recoverStringFromCompact(message.toString(), sig))
+
+  // Likewise, if the struct keys match an expanded signature
+  // struct, it can also be passed as the struct value directly.
+  console.log(await contract.recoverStringFromExpanded(message.toString(), sig))
+
+  // If using an older API which requires the v, r and s be passed
+  // separately, those members are present on the Signature.
+  console.log(await contract.recoverStringFromVRS(message.toString(), sig.v, sig.r, sig.s))
+
+  // Or if using an API that expects a raw signature.
+  console.log(await contract.recoverStringFromRaw(message.toString(), signature))
+
+  console.log(await contract.recoverECDSA(message, signature))
+}
+
+// export async function sendEncrypted<C extends BaseContract>(
+//   contract: C,
+//   func: any,
+//   encryptParam: bigint,
+//   getParams: (it: bigint, signature: string) => unknown[],
+//   signer: Signer & { address: string }
+// ) {
+//   const contractAddress = await contract.getAddress()
+//   const { ctInt, signature } = await prepareIT(encryptParam, signer, contractAddress, func.fragment.selector)
+//   return (await func(...getParams(ctInt, signature))).wait()
+// }
