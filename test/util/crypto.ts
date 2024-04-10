@@ -1,7 +1,6 @@
 import hre from "hardhat"
 import crypto from "crypto"
 import { Signer, solidityPackedKeccak256, Signature, getBytes, verifyMessage } from "ethers"
-// import {e} from "ethers"
 
 const block_size = 16 // AES block size in bytes
 const addressSize = 20 // 160-bit is the output of the Keccak-256 algorithm on the sender/contract address

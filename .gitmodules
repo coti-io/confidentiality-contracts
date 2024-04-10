@@ -1,6 +1,3 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "soda-sdk"]
-	path = soda-sdk
-	url = git@github.com:soda-mpc/soda-sdk.git
