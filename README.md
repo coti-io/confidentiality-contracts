@@ -49,3 +49,9 @@ $ cargo run --manifest-path /Users/Vlad1/coti/foundry/crates/forge/Cargo.toml sc
 ```shell
 $ yarn hardhat compile
 ```
+
+### Test
+
+```shell
+$ yarn test
+```

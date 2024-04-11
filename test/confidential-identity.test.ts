@@ -16,7 +16,7 @@ async function deploy() {
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
-describe.only("Confidential Identity", function () {
+describe("Confidential Identity", function () {
   let deployment: Awaited<ReturnType<typeof deploy>>
 
   before(async function () {

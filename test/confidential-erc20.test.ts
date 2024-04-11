@@ -38,7 +38,7 @@ describe("Confidential ERC20", function () {
   let deployment: Awaited<ReturnType<typeof deploy>>
 
   before(async function () {
-    // deployment = await deploy()
+    deployment = await deploy()
   })
 
   describe("Deployment", function () {
@@ -96,7 +96,7 @@ describe("Confidential ERC20", function () {
       await expectBalance(contract, deploymentInfo.initialSupply - 2 * transferAmount)
     })
 
-    it("Transfer - Confidential", async function () {
+    it.only("Transfer - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
 
       const func = contract.connect(owner)["transfer(address,uint256,bytes,bool)"]
