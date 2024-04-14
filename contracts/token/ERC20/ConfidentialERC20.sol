@@ -17,7 +17,7 @@ import "../../lib/MpcCore.sol";
 // The contract provides multiple transfer methods, allowing token transfers in both encrypted and clear (unencrypted) forms. Transfers can occur between addresses with encrypted token values or clear token values.
 // Approval Mechanism:
 // An approval mechanism is implemented to allow token holders to grant spending permissions (allowances) to other addresses. Approvals are also encrypted to maintain transaction privacy.
-contract ConfidentialERC20 {
+abstract contract ConfidentialERC20 {
     // Events are emitted for token transfers (Transfer) and approvals (Approval). These events provide transparency and allow external observers to track token movements within the contract.
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Transfer(address indexed _from, address indexed _to);
@@ -30,13 +30,13 @@ contract ConfidentialERC20 {
 
     string private _name;
     string private _symbol;
-    uint8 private _decimals = 5; // Sets the number of decimal places for token amounts. Here, _decimals is 5,
+    uint8 private _decimals; // Sets the number of decimal places for token amounts. Here, _decimals is 5,
     // allowing for transactions with precision up to 0.00001 tokens.
-    uint256 private _totalSupply;
+    uint256 internal _totalSupply;
 
     // Mapping of balances of the token holders
     // The balances are stored encrypted by the system aes key
-    mapping(address => utUint64) private balances;
+    mapping(address => utUint64) internal balances;
     // Mapping of allowances of the token holders
     mapping(address => mapping(address => utUint64)) private allowances;
 
@@ -44,33 +44,25 @@ contract ConfidentialERC20 {
     // params: name: the name of the token
     //         symbol: the symbol of the token
     //         initialSupply: the initial supply of the token assigned to the contract creator
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        uint64 initialSupply
-    ) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) {
         _name = name_;
         _symbol = symbol_;
-        _totalSupply = initialSupply;
-        balances[msg.sender] = MpcCore.offBoardCombined(
-            MpcCore.setPublic64(initialSupply),
-            msg.sender
-        );
+        _decimals = decimals_;
     }
 
-    function name() public view returns (string memory) {
+    function name() public view virtual returns (string memory) {
         return _name;
     }
 
-    function symbol() public view returns (string memory) {
+    function symbol() public view virtual returns (string memory) {
         return _symbol;
     }
 
-    function decimals() public view returns (uint8) {
+    function decimals() public view virtual returns (uint8) {
         return _decimals;
     }
 
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view virtual returns (uint256) {
         return _totalSupply;
     }
 
@@ -78,7 +70,7 @@ contract ConfidentialERC20 {
     // Since the balance is initially encrypted internally using the system's AES key, the user cannot access it.
     // Thus, the balance undergoes re-encryption using the user's secret key.
     // As a result, the function is not designated as a "view" function.
-    function balanceOf() public view returns (ctUint64 balance) {
+    function balanceOf() public view virtual returns (ctUint64 balance) {
         return balances[msg.sender].userCiphertext;
     }
 
@@ -93,7 +85,7 @@ contract ConfidentialERC20 {
         ctUint64 _itCT,
         bytes calldata _itSignature,
         bool revealRes
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         // Create IT from ciphertext and signature
         itUint64 memory it;
         it.ciphertext = _itCT;
@@ -116,7 +108,7 @@ contract ConfidentialERC20 {
         address _to,
         uint64 _value,
         bool revealRes
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         gtBool result = contractTransferClear(_to, _value);
 
         if (revealRes) {
@@ -133,7 +125,7 @@ contract ConfidentialERC20 {
     function contractTransfer(
         address _to,
         gtUint64 _value
-    ) public returns (gtBool success) {
+    ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(
             msg.sender,
             _to
@@ -157,7 +149,7 @@ contract ConfidentialERC20 {
     function contractTransferClear(
         address _to,
         uint64 _value
-    ) public returns (gtBool success) {
+    ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(
             msg.sender,
             _to
@@ -187,7 +179,7 @@ contract ConfidentialERC20 {
         ctUint64 _itCT,
         bytes calldata _itSignature,
         bool revealRes
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         // Create IT from ciphertext and signature
         itUint64 memory it;
         it.ciphertext = _itCT;
@@ -216,7 +208,7 @@ contract ConfidentialERC20 {
         address _to,
         uint64 _value,
         bool revealRes
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         gtBool result = contractTransferFromClear(_from, _to, _value);
         if (revealRes) {
             return MpcCore.decrypt(result);
@@ -234,7 +226,7 @@ contract ConfidentialERC20 {
         address _from,
         address _to,
         gtUint64 _value
-    ) public returns (gtBool success) {
+    ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
         gtUint64 allowanceAmount = MpcCore.onBoard(
             getGTAllowance(_from, msg.sender)
@@ -267,7 +259,7 @@ contract ConfidentialERC20 {
         address _from,
         address _to,
         uint64 _value
-    ) public returns (gtBool success) {
+    ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
         gtUint64 allowanceAmount = MpcCore.onBoard(
             getGTAllowance(_from, msg.sender)
@@ -335,7 +327,7 @@ contract ConfidentialERC20 {
         address _spender,
         ctUint64 _itCT,
         bytes calldata _itSignature
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         // Create IT using the given CT and signature
         itUint64 memory it;
         it.ciphertext = _itCT;
@@ -347,7 +339,7 @@ contract ConfidentialERC20 {
     function approve(
         address _spender,
         gtUint64 _value
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         address owner = msg.sender;
         setApproveValue(owner, _spender, _value);
         emit Approval(owner, _spender);
@@ -358,7 +350,7 @@ contract ConfidentialERC20 {
     function approveClear(
         address _spender,
         uint64 _value
-    ) public returns (bool success) {
+    ) public virtual returns (bool success) {
         address owner = msg.sender;
         gtUint64 gt = MpcCore.setPublic64(_value);
         setApproveValue(owner, _spender, gt);
@@ -370,7 +362,7 @@ contract ConfidentialERC20 {
     function allowance(
         address _owner,
         address _spender
-    ) public view returns (ctUint64 remaining) {
+    ) public view virtual returns (ctUint64 remaining) {
         require(_owner == msg.sender || _spender == msg.sender);
 
         return allowances[_owner][_spender].userCiphertext;

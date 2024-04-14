@@ -9,7 +9,7 @@ async function deploy() {
   const otherAccount = hre.ethers.Wallet.createRandom(hre.ethers.provider)
 
   const tokenAddress = "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540"
-  const token = await hre.ethers.getContractAt("ConfidentialERC20", tokenAddress)
+  const token = await hre.ethers.getContractAt("ERC20Example", tokenAddress)
 
   const factory = await hre.ethers.getContractFactory("ConfidentialAuction")
   const contract = await factory

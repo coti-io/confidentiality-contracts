@@ -9,11 +9,11 @@ async function deploy() {
   const [owner] = await hre.ethers.getSigners()
   const otherAccount = hre.ethers.Wallet.createRandom(hre.ethers.provider)
 
-  const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20")
+  const tokenContract = await hre.ethers.getContractFactory("ERC20Example")
   const { name, symbol, initialSupply } = deploymentInfo
   const token = await tokenContract.deploy(name, symbol, initialSupply, { gasLimit, from: owner.address })
   const contract = await token.waitForDeployment()
-  // const contract = await hre.ethers.getContractAt("ConfidentialERC20", "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540")
+  // const contract = await hre.ethers.getContractAt("ERC20Example", "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540")
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 

@@ -2,12 +2,12 @@
 pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ConfidentialERC20} from "../contracts/token/ERC20/ConfidentialERC20.sol";
+import {ERC20Example} from "../contracts/ERC20Example.sol";
 
 contract ConfidentialERC20Test is Test {
-    ConfidentialERC20 public token;
+    ERC20Example public token;
 
     function setUp() public {
-        token = new ConfidentialERC20("Test Token", "TST", 100000000);
+        token = new ERC20Example("Test Token", "TST", 100000000);
     }
 }

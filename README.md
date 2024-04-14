@@ -3,15 +3,13 @@
 ## Install - Forge
 
 ```shell
-# TODO: move the repo to the right org
-$ forge install git@github.com:vladi-coti/privacy-contracts.git
+$ forge install git@github.com:coti-io/confidentiality-contracts.git
 ```
 
 ## Install - Hardhat
 
 ```shell
-# TODO: move the repo to the right org
-$ yarn add git@github.com:vladi-coti/privacy-contracts.git
+$ yarn add git@github.com:coti-io/confidentiality-contracts.git
 ```
 
 ## Usage - Forge
