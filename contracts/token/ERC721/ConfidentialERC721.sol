@@ -72,6 +72,10 @@ abstract contract ConfidentialERC721 is
         return _requireOwned(tokenId);
     }
 
+    function isMinted(uint256 tokenId) public view virtual returns (bool) {
+        return _owners[tokenId]!= address(0);
+    }
+
     function name() public view virtual returns (string memory) {
         return _name;
     }

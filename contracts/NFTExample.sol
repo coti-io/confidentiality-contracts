@@ -6,7 +6,20 @@ import {ConfidentialERC721URIStorage} from "./token/ERC721/ConfidentialERC721URI
 import "./lib/MpcCore.sol";
 
 contract NFTExample is ConfidentialERC721, ConfidentialERC721URIStorage {
-    constructor() ConfidentialERC721("Example", "EXL") {}
+    event Minted(address indexed to, uint256 indexed tokenId);
+
+    // The next token ID to be minted.
+    uint256 private _totalSupply;
+
+    address private _owner;
+
+    constructor() ConfidentialERC721("Example", "EXL") {
+        _owner = msg.sender;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
+    }
 
     function supportsInterface(
         bytes4 interfaceId
@@ -34,6 +47,18 @@ contract NFTExample is ConfidentialERC721, ConfidentialERC721URIStorage {
         it.signature = _itSignature;
 
         _setTokenURI(tokenId, MpcCore.validateCiphertext(it));
+    }
+
+    function mint(address to) public {
+        uint256 tokenId = _totalSupply;
+        require(to != address(0), "Invalid address");
+        require(msg.sender == _owner, "Not owner");
+        require(!isMinted(tokenId), "Already minted");
+        _safeMint(to, tokenId);
+
+        _totalSupply += 1;
+
+        emit Minted(to, tokenId);
     }
 
     function _update(
