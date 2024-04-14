@@ -9,11 +9,11 @@ async function deploy() {
   const [owner] = await hre.ethers.getSigners()
   const otherAccount = hre.ethers.Wallet.createRandom(hre.ethers.provider)
 
-  // const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20")
-  // const { name, symbol, initialSupply } = deploymentInfo
-  // const token = await tokenContract.deploy(name, symbol, initialSupply, { gasLimit, from: owner.address })
-  // const contract = await token.waitForDeployment()
-  const contract = await hre.ethers.getContractAt("ConfidentialERC20", "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540")
+  const tokenContract = await hre.ethers.getContractFactory("ConfidentialERC20")
+  const { name, symbol, initialSupply } = deploymentInfo
+  const token = await tokenContract.deploy(name, symbol, initialSupply, { gasLimit, from: owner.address })
+  const contract = await token.waitForDeployment()
+  // const contract = await hre.ethers.getContractAt("ConfidentialERC20", "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540")
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
@@ -78,6 +78,7 @@ describe("Confidential ERC20", function () {
   describe(`Transfer $${transferAmount}`, function () {
     it("Transfer - clear", async function () {
       const { contract, owner, otherAccount } = deployment
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
 
       await (
         await contract
@@ -85,7 +86,7 @@ describe("Confidential ERC20", function () {
           ["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit })
       ).wait()
 
-      await expectBalance(contract, deploymentInfo.initialSupply - transferAmount)
+      await expectBalance(contract, initlalBalance - transferAmount)
 
       await (
         await contract
@@ -93,22 +94,25 @@ describe("Confidential ERC20", function () {
           ["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit })
       ).wait()
 
-      await expectBalance(contract, deploymentInfo.initialSupply - 2 * transferAmount)
+      await expectBalance(contract, initlalBalance - 2 * transferAmount)
     })
 
-    it.only("Transfer - Confidential", async function () {
+    it("Transfer - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
 
       const func = contract.connect(owner)["transfer(address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
       const { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector)
+
       await (await func(otherAccount.address, ctInt, signature, false, { gasLimit })).wait()
+      await expectBalance(contract, initlalBalance - transferAmount)
     })
 
     it("TransferFrom - clear without giving allowance should fail", async function () {
       const { contract, owner, otherAccount } = deployment
-
       const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+
       await (await contract.connect(owner).approveClear(otherAccount.address, 0, { gasLimit })).wait()
 
       const func = contract.connect(owner)["transferFrom(address,address,uint64,bool)"]
@@ -128,15 +132,16 @@ describe("Confidential ERC20", function () {
     it("TransferFrom - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
 
-      const approveFunc = contract.connect(owner)["approve(address,uint256,bytes)"]
-      const ApproveSelector = approveFunc.fragment.selector
-      let { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, ApproveSelector)
-      await (await approveFunc(otherAccount.address, ctInt, signature, { gasLimit })).wait()
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+
+      await (await contract.connect(owner).approveClear(otherAccount.address, transferAmount, { gasLimit })).wait()
 
       const func = contract.connect(owner)["transferFrom(address,address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
-      ;({ ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector))
+      let { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector)
       await (await func(owner.address, otherAccount.address, ctInt, signature, false, { gasLimit })).wait()
+
+      await expectBalance(contract, initlalBalance - transferAmount)
     })
 
     it("Approve/Allowance - Confidential", async function () {

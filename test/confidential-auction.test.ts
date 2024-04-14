@@ -11,12 +11,12 @@ async function deploy() {
   const tokenAddress = "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540"
   const token = await hre.ethers.getContractAt("ConfidentialERC20", tokenAddress)
 
-  //   const factory = await hre.ethers.getContractFactory("ConfidentialAuction")
-  //   const contract = await factory
-  //     .connect(owner)
-  //     .deploy(otherAccount.address, tokenAddress, 60 * 60 * 24, true, { gasLimit })
-  //   await contract.waitForDeployment()
-  const contract = await hre.ethers.getContractAt("ConfidentialAuction", "0xFA71F49669d65dbb91d268780828cB2449CB473c")
+  const factory = await hre.ethers.getContractFactory("ConfidentialAuction")
+  const contract = await factory
+    .connect(owner)
+    .deploy(otherAccount.address, tokenAddress, 60 * 60 * 24, true, { gasLimit })
+  await contract.waitForDeployment()
+  // const contract = await hre.ethers.getContractAt("ConfidentialAuction", "0xFA71F49669d65dbb91d268780828cB2449CB473c")
   //   console.log(`contractAddress ${await contract.getAddress()}`)
   return { token, contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
@@ -62,47 +62,50 @@ describe("Confidential Auction", function () {
     })
   })
 
-  const bidAmount = 5
-  it(`Bid $${bidAmount}`, async function () {
-    const { token, contract, contractAddress, owner } = deployment
+  describe("Bidding", function () {
+    const bidAmount = 5
+    it(`Bid $${bidAmount}`, async function () {
+      const { token, contract, contractAddress, owner } = deployment
 
-    const initialBalance = decryptValue(await token.connect(owner).balanceOf())
+      const initialBalance = decryptValue(await token.connect(owner).balanceOf())
 
-    await (await token.connect(owner).approveClear(contractAddress, bidAmount, { gasLimit })).wait()
+      await (await token.connect(owner).approveClear(contractAddress, bidAmount, { gasLimit })).wait()
 
-    const func = contract.connect(owner).bid
-    const selector = func.fragment.selector
-    const { ctInt, signature } = await prepareIT(BigInt(bidAmount), owner, contractAddress, selector)
-    await (await func(ctInt, signature, { gasLimit })).wait()
+      const func = contract.connect(owner).bid
+      const selector = func.fragment.selector
+      const { ctInt, signature } = await prepareIT(BigInt(bidAmount), owner, contractAddress, selector)
+      await (await func(ctInt, signature, { gasLimit })).wait()
 
-    await expectBalance(token, initialBalance - bidAmount)
+      await expectBalance(token, initialBalance - bidAmount)
 
-    expectBid(contract, bidAmount)
-  })
+      expectBid(contract, bidAmount)
+    })
 
-  it(`Increase Bid $${bidAmount * 2}`, async function () {
-    const { token, contract, contractAddress, owner } = deployment
+    it(`Increase Bid $${bidAmount * 2}`, async function () {
+      const { token, contract, contractAddress, owner } = deployment
 
-    const initialBalance = decryptValue(await token.connect(owner).balanceOf())
+      const initialBalance = decryptValue(await token.connect(owner).balanceOf())
 
-    await (await token.connect(owner).approveClear(contractAddress, bidAmount * 2, { gasLimit })).wait()
+      await (await token.connect(owner).approveClear(contractAddress, bidAmount * 2, { gasLimit })).wait()
 
-    const func = contract.connect(owner).bid
-    const selector = func.fragment.selector
-    const { ctInt, signature } = await prepareIT(BigInt(bidAmount * 2), owner, contractAddress, selector)
-    await (await func(ctInt, signature, { gasLimit })).wait()
+      const func = contract.connect(owner).bid
+      const selector = func.fragment.selector
+      const { ctInt, signature } = await prepareIT(BigInt(bidAmount * 2), owner, contractAddress, selector)
+      await (await func(ctInt, signature, { gasLimit })).wait()
 
-    await expectBalance(token, initialBalance - bidAmount * 2)
+      await expectBalance(token, initialBalance - bidAmount)
 
-    expectBid(contract, bidAmount * 2)
-  })
+      expectBid(contract, bidAmount * 2)
+    })
 
-  it(`Winner`, async function () {
-    const { contract, owner } = deployment
+    it(`Winner`, async function () {
+      const { contract, owner } = deployment
 
-    await (await contract.connect(owner).stop({ gasLimit })).wait()
+      await (await contract.connect(owner).stop({ gasLimit })).wait()
 
-    const bool = await contract.connect(owner).doIHaveHighestBid.staticCall({ gasLimit })
-    expect(bool).to.eq(1)
+      const ctBool = await contract.connect(owner).doIHaveHighestBid.staticCall({ gasLimit })
+      let bool = decryptValue(ctBool)
+      expect(bool).to.eq(1)
+    })
   })
 })

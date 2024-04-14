@@ -1,18 +1,19 @@
-import hre from "hardhat"
+import hre, { ethers } from "hardhat"
 import crypto from "crypto"
 import { Signer, solidityPackedKeccak256, Signature, getBytes, verifyMessage } from "ethers"
 
 const block_size = 16 // AES block size in bytes
-const addressSize = 20 // 160-bit is the output of the Keccak-256 algorithm on the sender/contract address
-const funcSigSize = 4
-const ctSize = 32
-const keySize = 32
 const hexBase = 16
 
 if (!process.env.USER_KEY) {
   throw new Error("please set USER_KEY env var")
 }
 export const user_key = Buffer.from(process.env.USER_KEY, "hex")
+
+if (!process.env.SIGNING_KEY) {
+  throw new Error("please set SIGNING_KEY env var")
+}
+export const signing_key = process.env.SIGNING_KEY
 
 function encrypt(key: Buffer, plaintext: Buffer) {
   // Ensure plaintext is smaller than 128 bits (16 bytes)
@@ -107,41 +108,24 @@ export async function prepareIT(
 
   // Encrypt the plaintext using AES key
   const { ciphertext, r } = encrypt(user_key, plaintextBytes)
-  console.log(`ciphertext: ${ciphertext.toString("hex")}`)
-  const ct = Buffer.from("239b1296bcf08ebac779beeba66d28f99efe264d45d087f2c3800c243b8792d0", "hex") //Buffer.concat([ciphertext, r])
-  console.log(`ct: ${ct.toString("hex")}`)
+  const ct = Buffer.concat([ciphertext, r])
 
   const message = solidityPackedKeccak256(
     ["address", "address", "bytes4", "uint256"],
     [sender.address, contractAddress, functionSelector, BigInt("0x" + ct.toString("hex"))]
   )
-  console.log(`message: ${message}`)
 
-  const hash = getBytes(message)
-  console.log(`hash: ${Buffer.from(hash).toString("hex")}`)
+  const key = new ethers.SigningKey(signing_key)
+  const sig = key.sign(message)
+  // const signature = await sender.signMessage(hash)
+  // const verified = verifyMessage(hash, signature)
 
-  const signature = await sender.signMessage(hash)
-  const verified = verifyMessage(hash, signature)
-  console.log(`verified: ${verified}`)
-  console.log(`signature: ${signature}`)
+  const signature = Buffer.concat([getBytes(sig.r), getBytes(sig.s), getBytes(`0x0${sig.v - 27}`)])
 
-  // const sig = Signature.from(signature)
-
-  // let rBytes = Buffer.from(sig.r)
-  // let sBytes = Buffer.from(sig.s)
-  // let vByte = Buffer.from([sig.v - 27])
-
-  // console.log(`sig.r ${sig.r}`)
-  // console.log(`sig.s ${sig.s}`)
-  // console.log(`sig.v ${sig.v - 27}`)
-  // const sig2 = Buffer.concat([rBytes, sBytes, vByte])
-  // console.log(`sig2: ${sig2.toString("hex")}`)
-
-  await testRecover(signature, hash)
+  // await testRecover(signature, hash)
 
   // Convert the ciphertext to BigInt
   const ctInt = BigInt("0x" + ct.toString("hex"))
-  console.log(`ctInt: ${ctInt.toString()}`)
 
   return { ctInt, signature }
 }
