@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ConfidentialERC721} from "./token/ERC721/ConfidentialERC721.sol";
 import {ConfidentialERC721URIStorage} from "./token/ERC721/ConfidentialERC721URIStorage.sol";
 import "./lib/MpcCore.sol";
 
-contract NFTExample is ConfidentialERC721, ConfidentialERC721URIStorage {
+contract NFTExample is
+    ConfidentialERC721,
+    Ownable,
+    ConfidentialERC721URIStorage
+{
     event Minted(address indexed to, uint256 indexed tokenId);
 
-    // The next token ID to be minted.
     uint256 private _totalSupply;
 
-    address private _owner;
-
-    constructor() ConfidentialERC721("Example", "EXL") {
-        _owner = msg.sender;
+    constructor() ConfidentialERC721("Example", "EXL") Ownable(msg.sender) {
+        _totalSupply = 0;
+        mint(msg.sender);
     }
 
     function totalSupply() public view returns (uint256) {
@@ -46,19 +49,26 @@ contract NFTExample is ConfidentialERC721, ConfidentialERC721URIStorage {
         it.ciphertext = _itTokenURI;
         it.signature = _itSignature;
 
-        _setTokenURI(tokenId, MpcCore.validateCiphertext(it));
+        _setTokenURI(msg.sender, tokenId, MpcCore.validateCiphertext(it));
     }
 
-    function mint(address to) public {
+    function mint(address to) public onlyOwner {
         uint256 tokenId = _totalSupply;
-        require(to != address(0), "Invalid address");
-        require(msg.sender == _owner, "Not owner");
-        require(!isMinted(tokenId), "Already minted");
-        _safeMint(to, tokenId);
-
+        _mint(to, tokenId);
         _totalSupply += 1;
 
         emit Minted(to, tokenId);
+    }
+
+    function _mint(
+        address to,
+        uint256 tokenId
+    )
+        internal
+        virtual
+        override(ConfidentialERC721, ConfidentialERC721URIStorage)
+    {
+        return ConfidentialERC721URIStorage._mint(to, tokenId);
     }
 
     function _update(

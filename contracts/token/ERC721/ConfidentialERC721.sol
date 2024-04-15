@@ -19,6 +19,8 @@ abstract contract ConfidentialERC721 is
 {
     using Strings for uint256;
 
+    error ERC721AlreadyMintedToken(uint256 tokenId);
+
     // Token name
     string private _name;
 
@@ -69,11 +71,11 @@ abstract contract ConfidentialERC721 is
      * @dev See {IConfidentialERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
-        return _requireOwned(tokenId);
+        return _ownerOf(tokenId);
     }
 
     function isMinted(uint256 tokenId) public view virtual returns (bool) {
-        return _owners[tokenId]!= address(0);
+        return _owners[tokenId] != address(0);
     }
 
     function name() public view virtual returns (string memory) {
@@ -285,26 +287,15 @@ abstract contract ConfidentialERC721 is
         address _from,
         address _to
     ) private returns (gtUint64, gtUint64) {
-        ctUint64 fromBalance = _balances[_from].ciphertext;
-        ctUint64 toBalance = _balances[_to].ciphertext;
+        return (_getBalance(_from), _getBalance(_to));
+    }
 
-        gtUint64 gtFromBalance;
-        gtUint64 gtToBalance;
-        if (ctUint64.unwrap(fromBalance) == 0) {
-            // 0 means that no allowance has been set
-            gtFromBalance = MpcCore.setPublic64(0);
-        } else {
-            gtFromBalance = MpcCore.onBoard(fromBalance);
-        }
-
-        if (ctUint64.unwrap(toBalance) == 0) {
-            // 0 means that no allowance has been set
-            gtToBalance = MpcCore.setPublic64(0);
-        } else {
-            gtToBalance = MpcCore.onBoard(toBalance);
-        }
-
-        return (gtFromBalance, gtToBalance);
+    function _getBalance(address addr) private returns (gtUint64) {
+        ctUint64 balance = _balances[addr].ciphertext;
+        return
+            ctUint64.unwrap(balance) == 0
+                ? MpcCore.setPublic64(0)
+                : MpcCore.onBoard(balance);
     }
 
     /**
@@ -319,14 +310,22 @@ abstract contract ConfidentialERC721 is
      *
      * Emits a {Transfer} event.
      */
-    function _mint(address to, uint256 tokenId) internal {
+    function _mint(address to, uint256 tokenId) internal virtual {
         if (to == address(0)) {
             revert ERC721InvalidReceiver(address(0));
         }
-        address previousOwner = _update(to, tokenId, address(0));
-        if (previousOwner != address(0)) {
-            revert ERC721InvalidSender(address(0));
+        if (isMinted(tokenId)) {
+            revert ERC721AlreadyMintedToken(tokenId);
         }
+        gtUint64 newBalance = MpcCore.add(
+            _getBalance(to),
+            MpcCore.setPublic64(1)
+        );
+        _balances[to] = MpcCore.offBoardCombined(newBalance, to);
+
+        _owners[tokenId] = to;
+
+        emit Transfer(address(0), to, tokenId);
     }
 
     /**

@@ -35,11 +35,18 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
      * Emits {MetadataUpdate}.
      */
     function _setTokenURI(
+        address to,
         uint256 tokenId,
         gtUint64 _tokenURI
     ) internal virtual {
-        _tokenURIs[tokenId] = MpcCore.offBoardCombined(_tokenURI, msg.sender);
+        _tokenURIs[tokenId] = MpcCore.offBoardCombined(_tokenURI, to);
         emit MetadataUpdate(tokenId);
+    }
+
+    function _mint(address to, uint256 tokenId) internal virtual override {
+        _setTokenURI(to, tokenId, MpcCore.setPublic64(0));
+
+        ConfidentialERC721._mint(to, tokenId);
     }
 
     function _update(
@@ -50,7 +57,7 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
         // reencrypt with the new user key
         _tokenURIs[tokenId] = MpcCore.offBoardCombined(
             MpcCore.onBoard(_tokenURIs[tokenId].ciphertext),
-            msg.sender
+            to
         );
 
         return ConfidentialERC721._update(to, tokenId, auth);
