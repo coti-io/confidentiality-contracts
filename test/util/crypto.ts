@@ -77,7 +77,7 @@ function decrypt(key: Buffer, r: Buffer, ciphertext: Buffer) {
   return plaintext
 }
 
-export function decryptValue(myCTBalance: bigint) {
+export function decryptValue(myCTBalance: bigint, userKey = user_key) {
   // Convert CT to bytes
   let ctString = myCTBalance.toString(hexBase)
   let ctArray = Buffer.from(ctString, "hex")
@@ -91,7 +91,7 @@ export function decryptValue(myCTBalance: bigint) {
   const r = ctArray.subarray(block_size)
 
   // Decrypt the cipher
-  const decryptedMessage = decrypt(user_key, r, cipher)
+  const decryptedMessage = decrypt(userKey, r, cipher)
 
   return parseInt(decryptedMessage.toString("hex"), block_size)
 }

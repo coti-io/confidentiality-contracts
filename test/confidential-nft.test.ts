@@ -139,7 +139,7 @@ describe("Confidential NFT", function () {
   })
 
   describe("URI", function () {
-    it("should return empty string for token URI if not set", async function () {
+    it("should return 0 for token URI if not set", async function () {
       const { contract, owner } = deployment
 
       const tokenId = 0
@@ -182,7 +182,7 @@ describe("Confidential NFT", function () {
       expect(reverted).to.eq(true, "Should have reverted")
     })
 
-    it("should emit URISet event on setting token URI", async function () {
+    it("should emit MetadataUpdate event on setting token URI", async function () {
       const { contract, contractAddress, owner } = deployment
 
       const tokenId = 0
