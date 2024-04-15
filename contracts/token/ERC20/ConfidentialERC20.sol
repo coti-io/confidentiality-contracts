@@ -229,7 +229,7 @@ abstract contract ConfidentialERC20 {
     ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
         gtUint64 allowanceAmount = MpcCore.onBoard(
-            getGTAllowance(_from, msg.sender)
+            getGTAllowance(_from, _to)
         );
         (
             gtUint64 newFromBalance,
@@ -243,7 +243,7 @@ abstract contract ConfidentialERC20 {
                 allowanceAmount
             );
 
-        setApproveValue(_from, msg.sender, newAllowance);
+        setApproveValue(_from, _to, newAllowance);
         emit Transfer(_from, _to);
         setNewBalances(_from, _to, newFromBalance, newToBalance);
 
@@ -262,7 +262,7 @@ abstract contract ConfidentialERC20 {
     ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
         gtUint64 allowanceAmount = MpcCore.onBoard(
-            getGTAllowance(_from, msg.sender)
+            getGTAllowance(_from, _to)
         );
         (
             gtUint64 newFromBalance,
@@ -276,7 +276,7 @@ abstract contract ConfidentialERC20 {
                 allowanceAmount
             );
 
-        setApproveValue(_from, msg.sender, newAllowance);
+        setApproveValue(_from, _to, newAllowance);
         emit Transfer(_from, _to, _value);
         setNewBalances(_from, _to, newFromBalance, newToBalance);
 

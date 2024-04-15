@@ -73,7 +73,7 @@ describe("Confidential NFT", function () {
       const { contract, otherAccount } = deployment
 
       const tx = await contract.connect(otherAccount).mint(otherAccount.address, { gasLimit })
-      let reverted = false
+      let reverted = true
       try {
         await tx.wait()
         reverted = false
@@ -107,7 +107,7 @@ describe("Confidential NFT", function () {
       const tx = await contract
         .connect(otherAccount)
         .transferFrom(owner.address, otherAccount.address, tokenId, { gasLimit })
-      let reverted = false
+      let reverted = true
       try {
         await tx.wait()
         reverted = false
@@ -124,7 +124,7 @@ describe("Confidential NFT", function () {
       const tx = await contract
         .connect(otherAccount)
         .transferFrom(owner.address, otherAccount.address, tokenId, { gasLimit })
-      let reverted = false
+      let reverted = true
       try {
         await tx.wait()
         reverted = false
@@ -175,7 +175,7 @@ describe("Confidential NFT", function () {
       let { ctInt, signature } = await prepareIT(BigInt(uri), otherAccount, contractAddress, selector)
 
       const tx = await func(tokenId, ctInt, signature, { gasLimit })
-      let reverted = false
+      let reverted = true
       try {
         await tx.wait()
         reverted = false
