@@ -1,7 +1,10 @@
 import { HardhatUserConfig } from "hardhat/config"
 import "@nomicfoundation/hardhat-toolbox"
 
-const accounts = process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : undefined
+const accounts = [
+  ...(process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : []),
+  ...(process.env.SIGNING_KEY2 ? [process.env.SIGNING_KEY2] : []),
+]
 
 const config: HardhatUserConfig = {
   defaultNetwork: "cotiv2",
