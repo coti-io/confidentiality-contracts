@@ -25,13 +25,13 @@ describe.only("Confidential NFT", function () {
 
   describe("Deployment", function () {
     it("Deployed address should be a valid Ethereum address", async function () {
-      expect(deployment.contractAddress).to.match(/^0x[a-fA-F0-9]{40}$/)
+      expect(hre.ethers.isAddress(deployment.contractAddress)).to.eq(true)
     })
 
     it("Name should match deployment name", async function () {
       expect(await deployment.contract.name()).to.equal("Example")
     })
-
+    
     it("Symbol should match deployment symbol", async function () {
       expect(await deployment.contract.symbol()).to.equal("EXL")
     })
