@@ -19,4 +19,6 @@ coverage.json
 /cache-forge
 
 # remove after deployment is fixed
-deployments 
+deployments
+.vscode
+.idea
