@@ -94,8 +94,7 @@ describe("Confidential NFT", function () {
       await (
         await contract.connect(owner).transferFrom(owner.address, otherAccount.address, tokenId, { gasLimit })
       ).wait()
-      console.log("transferred")
-      // expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.address)
+      expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.address)
     })
 
     it("Should fail transfer token to other account for when no allowance", async function () {
