@@ -75,7 +75,7 @@ describe("Confidential ERC20", function () {
   })
 
   const transferAmount = 5
-  describe(`Transfer $${transferAmount}`, function () {
+  describe(`Transfer ${transferAmount}`, function () {
     it("Transfer - clear", async function () {
       const { contract, owner, otherAccount } = deployment
       const initlalBalance = decryptValue(await deployment.contract.balanceOf())

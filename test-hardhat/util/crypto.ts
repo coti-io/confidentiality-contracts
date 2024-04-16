@@ -122,47 +122,16 @@ export async function prepareIT(
 
   const signature = Buffer.concat([getBytes(sig.r), getBytes(sig.s), getBytes(`0x0${sig.v - 27}`)])
 
-  // await testRecover(signature, hash)
-
   // Convert the ciphertext to BigInt
   const ctInt = BigInt("0x" + ct.toString("hex"))
 
   return { ctInt, signature }
 }
 
-async function testRecover(signature: string, hash: Uint8Array) {
-  // const contract = await (await (await hre.ethers.getContractFactory("RecoverMessage")).deploy()).waitForDeployment()
-  const contract = await hre.ethers.getContractAt("RecoverMessage", "0xA1913406A9f0D10fd44f02dA54e6fcdfffCF7E46")
-  // console.log(`contract address ${await contract.getAddress()}`)
-  const sig = Signature.from(signature)
+// async function testRecover(signature: string, hash: Uint8Array) {
+//   // const contract = await (await (await hre.ethers.getContractFactory("RecoverMessage")).deploy()).waitForDeployment()
+//   const contract = await hre.ethers.getContractAt("RecoverMessage", "0xA1913406A9f0D10fd44f02dA54e6fcdfffCF7E46")
+//   // console.log(`contract address ${await contract.getAddress()}`)
 
-  // // If the signature matches the EIP-2098 format, a Signature
-  // // can be passed as the struct value directly, since the
-  // // parser will pull out the matching struct keys from sig.
-  // console.log(await contract.recoverStringFromCompact(hash, sig))
-
-  // // Likewise, if the struct keys match an expanded signature
-  // // struct, it can also be passed as the struct value directly.
-  // console.log(await contract.recoverStringFromExpanded(hash, sig))
-
-  // // If using an older API which requires the v, r and s be passed
-  // // separately, those members are present on the Signature.
-  // console.log(await contract.recoverStringFromVRS(hash, sig.v, sig.r, sig.s))
-
-  // // Or if using an API that expects a raw signature.
-  // console.log(await contract.recoverStringFromRaw(hash, signature))
-
-  console.log(await contract.recoverECDSA(hash, signature))
-}
-
-// export async function sendEncrypted<C extends BaseContract>(
-//   contract: C,
-//   func: any,
-//   encryptParam: bigint,
-//   getParams: (it: bigint, signature: string) => unknown[],
-//   signer: Signer & { address: string }
-// ) {
-//   const contractAddress = await contract.getAddress()
-//   const { ctInt, signature } = await prepareIT(encryptParam, signer, contractAddress, func.fragment.selector)
-//   return (await func(...getParams(ctInt, signature))).wait()
+//   console.log(await contract.recoverECDSA(hash, signature))
 // }

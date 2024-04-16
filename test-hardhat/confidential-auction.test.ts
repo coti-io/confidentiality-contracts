@@ -64,7 +64,7 @@ describe("Confidential Auction", function () {
 
   describe("Bidding", function () {
     const bidAmount = 5
-    it(`Bid $${bidAmount}`, async function () {
+    it(`Bid ${bidAmount}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
       const initialBalance = decryptValue(await token.connect(owner).balanceOf())
@@ -81,7 +81,7 @@ describe("Confidential Auction", function () {
       expectBid(contract, bidAmount)
     })
 
-    it(`Increase Bid $${bidAmount * 2}`, async function () {
+    it(`Increase Bid ${bidAmount * 2}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
       const initialBalance = decryptValue(await token.connect(owner).balanceOf())
