@@ -44,12 +44,16 @@ contract NFTExample is
         bytes calldata _itSignature
     ) public {
         _requireOwned(tokenId);
+        address owner = _ownerOf(tokenId);
+        if (msg.sender != owner) {
+            revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
+        }
 
         itUint64 memory it;
         it.ciphertext = _itTokenURI;
         it.signature = _itSignature;
 
-        _setTokenURI(msg.sender, tokenId, MpcCore.validateCiphertext(it));
+        _setTokenURI(owner, tokenId, MpcCore.validateCiphertext(it));
     }
 
     function mint(address to) public onlyOwner {
