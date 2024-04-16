@@ -167,7 +167,7 @@ describe("Confidential NFT", function () {
       const { contract, contractAddress, otherAccount } = deployment
 
       const tokenId = 0
-      const uri = 11
+      const uri = 22
 
       const func = contract.connect(otherAccount.wallet).setTokenURI
       const selector = func.fragment.selector
@@ -191,13 +191,12 @@ describe("Confidential NFT", function () {
       const func = contract.connect(owner.wallet).setTokenURI
       const selector = func.fragment.selector
       let { ctInt, signature } = await prepareIT(BigInt(uri), owner, contractAddress, selector)
-
-      const ctRetrievedUri = await contract.tokenURI(tokenId)
-      expect(decryptValue(ctRetrievedUri, owner.userKey)).to.equal(uri)
-
       await expect((await func(tokenId, ctInt, signature, { gasLimit })).wait())
         .to.emit(contract, "MetadataUpdate")
         .withArgs(tokenId)
+
+      const ctRetrievedUri = await contract.tokenURI(tokenId)
+      expect(decryptValue(ctRetrievedUri, owner.userKey)).to.equal(uri)
     })
   })
 })

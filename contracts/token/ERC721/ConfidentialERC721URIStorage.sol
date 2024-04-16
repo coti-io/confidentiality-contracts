@@ -24,8 +24,6 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     }
 
     function tokenURI(uint256 tokenId) public view virtual returns (ctUint64) {
-        _requireOwned(tokenId);
-
         return _tokenURIs[tokenId].userCiphertext;
     }
 
@@ -44,9 +42,12 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     }
 
     function _mint(address to, uint256 tokenId) internal virtual override {
-        _setTokenURI(to, tokenId, MpcCore.setPublic64(0));
-
         ConfidentialERC721._mint(to, tokenId);
+
+        _tokenURIs[tokenId] = MpcCore.offBoardCombined(
+            MpcCore.setPublic64(0),
+            to
+        );
     }
 
     function _update(
