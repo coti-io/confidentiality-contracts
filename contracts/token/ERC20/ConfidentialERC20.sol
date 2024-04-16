@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "MpcCore.sol";
+import "../../lib/MpcCore.sol";
 
 // The provided Solidity contract is an implementation of an ERC20 token standard with enhanced privacy features.
 // It aims to ensure the confidentiality of token transactions through encryption techniques while maintaining compatibility with the ERC20 standard.
