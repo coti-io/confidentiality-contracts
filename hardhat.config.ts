@@ -4,14 +4,10 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "cotiv2",
+  defaultNetwork: "devnet",
   solidity: "0.8.24",
   networks: {
     // hardhat: {},
-    cotiv2: {
-      url: "https://node.sodalabs.net",
-      chainId: 50505050,
-    },
     devnet: {
       url: "https://devnet.coti.io",
       chainId: 13068200,
