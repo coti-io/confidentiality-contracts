@@ -1,36 +1,38 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { decryptValue, prepareIT } from "./util/crypto"
+import { type User, setupAccounts } from "./util/onboard"
 
 const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
 const gasLimit = 12000000
 
 async function deploy() {
-  const [owner] = await hre.ethers.getSigners()
-  const otherAccount = hre.ethers.Wallet.createRandom(hre.ethers.provider)
+  const [owner, otherAccount] = await setupAccounts()
 
   const tokenContract = await hre.ethers.getContractFactory("ERC20Example")
   const { name, symbol, initialSupply } = deploymentInfo
-  const token = await tokenContract.deploy(name, symbol, initialSupply, { gasLimit, from: owner.address })
+  const token = await tokenContract
+    .connect(owner.wallet)
+    .deploy(name, symbol, initialSupply, { gasLimit, from: owner.wallet.address })
   const contract = await token.waitForDeployment()
   // const contract = await hre.ethers.getContractAt("ERC20Example", "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540")
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
-async function expectBalance(contract: Awaited<ReturnType<typeof deploy>>["contract"], amount: number) {
-  const ctBalance = await contract.balanceOf()
-  let my_balance = decryptValue(ctBalance)
-  expect(my_balance).to.equal(amount)
+async function expectBalance(token: Awaited<ReturnType<typeof deploy>>["contract"], amount: number, user: User) {
+  const ctBalance = await token.connect(user.wallet).balanceOf()
+  let balance = decryptValue(ctBalance, user.userKey)
+  expect(balance).to.equal(amount)
 }
 
 async function expectAllowance(
   contract: Awaited<ReturnType<typeof deploy>>["contract"],
   amount: number,
-  ownerAddress: string,
+  owner: User,
   spenderAddress: string
 ) {
-  const ctAllowance = await contract.allowance(ownerAddress, spenderAddress)
-  let allowance = decryptValue(ctAllowance)
+  const ctAllowance = await contract.allowance(owner.wallet.address, spenderAddress)
+  let allowance = decryptValue(ctAllowance, owner.userKey)
   expect(allowance).to.equal(amount)
 }
 
@@ -49,11 +51,11 @@ describe("Confidential ERC20", function () {
     })
 
     it("Owner initial balance", async function () {
-      const { contract } = deployment
+      const { contract, owner } = deployment
 
       const my_CTBalance = await contract.balanceOf()
 
-      let my_balance = decryptValue(my_CTBalance)
+      let my_balance = decryptValue(my_CTBalance, owner.userKey)
       expect(my_balance).to.equal(deploymentInfo.initialSupply)
     })
 
@@ -78,84 +80,90 @@ describe("Confidential ERC20", function () {
   describe(`Transfer ${transferAmount}`, function () {
     it("Transfer - clear", async function () {
       const { contract, owner, otherAccount } = deployment
-      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf(), owner.userKey)
 
       await (
         await contract
-          .connect(owner)
-          ["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit })
+          .connect(owner.wallet)
+          ["transfer(address,uint64,bool)"](otherAccount.wallet.address, transferAmount, true, { gasLimit })
       ).wait()
 
-      await expectBalance(contract, initlalBalance - transferAmount)
+      await expectBalance(contract, initlalBalance - transferAmount, owner)
 
       await (
         await contract
-          .connect(owner)
-          ["transfer(address,uint64,bool)"](otherAccount.address, transferAmount, true, { gasLimit })
+          .connect(owner.wallet)
+          ["transfer(address,uint64,bool)"](otherAccount.wallet.address, transferAmount, true, { gasLimit })
       ).wait()
 
-      await expectBalance(contract, initlalBalance - 2 * transferAmount)
+      await expectBalance(contract, initlalBalance - 2 * transferAmount, owner)
     })
 
     it("Transfer - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
-      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf(), owner.userKey)
 
-      const func = contract.connect(owner)["transfer(address,uint256,bytes,bool)"]
+      const func = contract.connect(owner.wallet)["transfer(address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
       const { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector)
 
-      await (await func(otherAccount.address, ctInt, signature, false, { gasLimit })).wait()
-      await expectBalance(contract, initlalBalance - transferAmount)
+      await (await func(otherAccount.wallet.address, ctInt, signature, false, { gasLimit })).wait()
+      await expectBalance(contract, initlalBalance - transferAmount, owner)
     })
 
     it("TransferFrom - clear without giving allowance should fail", async function () {
       const { contract, owner, otherAccount } = deployment
-      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf(), owner.userKey)
 
-      await (await contract.connect(owner).approveClear(otherAccount.address, 0, { gasLimit })).wait()
+      await (await contract.connect(owner.wallet).approveClear(otherAccount.wallet.address, 0, { gasLimit })).wait()
 
-      const func = contract.connect(owner)["transferFrom(address,address,uint64,bool)"]
-      await (await func(owner.address, otherAccount.address, transferAmount, true, { gasLimit })).wait()
-      await expectBalance(contract, initlalBalance)
+      const func = contract.connect(owner.wallet)["transferFrom(address,address,uint64,bool)"]
+      await (await func(owner.wallet.address, otherAccount.wallet.address, transferAmount, true, { gasLimit })).wait()
+      await expectBalance(contract, initlalBalance, owner)
     })
 
     it("TransferFrom - clear", async function () {
       const { contract, owner, otherAccount } = deployment
 
-      await (await contract.connect(owner).approveClear(otherAccount.address, transferAmount, { gasLimit })).wait()
+      await (
+        await contract.connect(owner.wallet).approveClear(otherAccount.wallet.address, transferAmount, { gasLimit })
+      ).wait()
 
-      const func = contract.connect(owner)["transferFrom(address,address,uint64,bool)"]
-      await (await func(owner.address, otherAccount.address, transferAmount, true, { gasLimit })).wait()
+      const func = contract.connect(owner.wallet)["transferFrom(address,address,uint64,bool)"]
+      await (await func(owner.wallet.address, otherAccount.wallet.address, transferAmount, true, { gasLimit })).wait()
     })
 
     it("TransferFrom - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
 
-      const initlalBalance = decryptValue(await deployment.contract.balanceOf())
+      const initlalBalance = decryptValue(await deployment.contract.balanceOf(), owner.userKey)
 
-      await (await contract.connect(owner).approveClear(otherAccount.address, transferAmount, { gasLimit })).wait()
+      await (
+        await contract.connect(owner.wallet).approveClear(otherAccount.wallet.address, transferAmount, { gasLimit })
+      ).wait()
 
-      const func = contract.connect(owner)["transferFrom(address,address,uint256,bytes,bool)"]
+      const func = contract.connect(owner.wallet)["transferFrom(address,address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
       let { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector)
-      await (await func(owner.address, otherAccount.address, ctInt, signature, false, { gasLimit })).wait()
+      await (
+        await func(owner.wallet.address, otherAccount.wallet.address, ctInt, signature, false, { gasLimit })
+      ).wait()
 
-      await expectBalance(contract, initlalBalance - transferAmount)
+      await expectBalance(contract, initlalBalance - transferAmount, owner)
     })
 
     it("Approve/Allowance - Confidential", async function () {
       const { contract, contractAddress, owner, otherAccount } = deployment
 
-      await (await contract.connect(owner).approveClear(otherAccount.address, 0, { gasLimit })).wait()
-      await expectAllowance(contract, 0, owner.address, otherAccount.address)
+      await (await contract.connect(owner.wallet).approveClear(otherAccount.wallet.address, 0, { gasLimit })).wait()
+      await expectAllowance(contract, 0, owner, otherAccount.wallet.address)
 
-      const func = contract.connect(owner)["approve(address,uint256,bytes)"]
+      const func = contract.connect(owner.wallet)["approve(address,uint256,bytes)"]
       const selector = func.fragment.selector
       const { ctInt, signature } = await prepareIT(BigInt(transferAmount), owner, contractAddress, selector)
-      await (await func(otherAccount.address, ctInt, signature, { gasLimit })).wait()
+      await (await func(otherAccount.wallet.address, ctInt, signature, { gasLimit })).wait()
 
-      await expectAllowance(contract, transferAmount, owner.address, otherAccount.address)
+      await expectAllowance(contract, transferAmount, owner, otherAccount.wallet.address)
     })
   })
 })
