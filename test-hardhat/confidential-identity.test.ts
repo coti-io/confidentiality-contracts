@@ -1,14 +1,15 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { decryptValue, prepareIT } from "./util/crypto"
+import { setupAccounts } from "./util/onboard"
 
 const gasLimit = 12000000
 
 async function deploy() {
-  const [owner, otherAccount] = await hre.ethers.getSigners()
+  const [owner, otherAccount] = await setupAccounts()
 
   const factory = await hre.ethers.getContractFactory("ConfidentialIdentityRegistry")
-  const contract = await factory.connect(owner).deploy({ gasLimit })
+  const contract = await factory.connect(owner.wallet).deploy({ gasLimit })
   await contract.waitForDeployment()
   // const contract = await hre.ethers.getContractAt("ConfidentialAuction", "0xFA71F49669d65dbb91d268780828cB2449CB473c")
   //   console.log(`contractAddress ${await contract.getAddress()}`)
@@ -21,9 +22,9 @@ describe("Confidential Identity", function () {
   before(async function () {
     deployment = await deploy()
 
-    const tx1 = await deployment.contract.addRegistrar(deployment.owner.address, 1, { gasLimit })
-    const tx2 = await deployment.contract.addDid(deployment.owner.address, { gasLimit })
-    const tx3 = await deployment.contract.addDid(deployment.otherAccount.address, { gasLimit })
+    const tx1 = await deployment.contract.addRegistrar(deployment.owner.wallet.address, 1, { gasLimit })
+    const tx2 = await deployment.contract.addDid(deployment.owner.wallet.address, { gasLimit })
+    const tx3 = await deployment.contract.addDid(deployment.otherAccount.wallet.address, { gasLimit })
     await Promise.all([tx1, tx2, tx3].map((tx) => tx.wait()))
   })
 
@@ -31,14 +32,14 @@ describe("Confidential Identity", function () {
   it(`Set Age Id ${idAge}`, async function () {
     const { contract, contractAddress, owner } = deployment
 
-    const func = contract.connect(owner).setIdentifier
+    const func = contract.connect(owner.wallet).setIdentifier
     const selector = func.fragment.selector
     const { ctInt, signature } = await prepareIT(BigInt(idAge), owner, contractAddress, selector)
-    await (await func(owner.address, "age", ctInt, signature, { gasLimit })).wait()
+    await (await func(owner.wallet.address, "age", ctInt, signature, { gasLimit })).wait()
 
-    await (await contract.grantAccess(deployment.owner.address, ["age"], { gasLimit })).wait()
-    const ctAge = await contract.getIdentifier.staticCall(deployment.owner.address, "age", { gasLimit })
-    expect(decryptValue(ctAge)).to.eq(idAge)
+    await (await contract.grantAccess(deployment.owner.wallet.address, ["age"], { gasLimit })).wait()
+    const ctAge = await contract.getIdentifier.staticCall(deployment.owner.wallet.address, "age", { gasLimit })
+    expect(decryptValue(ctAge, owner.userKey)).to.eq(idAge)
   })
 
   it("Should revert when trying to get identifier without access", async function () {
@@ -46,19 +47,19 @@ describe("Confidential Identity", function () {
 
     await expect(
       contract
-        .connect(otherAccount)
-        .getIdentifier.staticCall(owner.address, "age", { gasLimit, from: otherAccount.address })
+        .connect(otherAccount.wallet)
+        .getIdentifier.staticCall(owner.wallet.address, "age", { gasLimit, from: otherAccount.wallet.address })
     ).to.be.revertedWith("User didn't give you permission to access this identifier.")
   })
 
   it("Should get identifier if access is granted", async function () {
     const { contract, otherAccount, owner } = deployment
 
-    await (await contract.connect(owner).grantAccess(otherAccount.address, ["age"], { gasLimit })).wait()
-    console.log(`after graning access`)
+    await (await contract.connect(owner.wallet).grantAccess(otherAccount.wallet.address, ["age"], { gasLimit })).wait()
+
     const ctAge = await contract
-      .connect(otherAccount)
-      .getIdentifier.staticCall(owner.address, "age", { gasLimit, from: otherAccount.address })
-    expect(decryptValue(ctAge, Buffer.from(process.env.USER_KEY2 || "", "hex"))).to.eq(idAge)
+      .connect(otherAccount.wallet)
+      .getIdentifier.staticCall(owner.wallet.address, "age", { gasLimit, from: otherAccount.wallet.address })
+    expect(decryptValue(ctAge, otherAccount.userKey)).to.eq(idAge)
   })
 })

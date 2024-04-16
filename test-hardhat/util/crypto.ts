@@ -1,19 +1,9 @@
-import hre, { ethers } from "hardhat"
 import crypto from "crypto"
-import { Signer, solidityPackedKeccak256, Signature, getBytes, verifyMessage } from "ethers"
+import { solidityPackedKeccak256, SigningKey, getBytes } from "ethers"
+import type { User } from "./onboard"
 
 const block_size = 16 // AES block size in bytes
 const hexBase = 16
-
-if (!process.env.USER_KEY) {
-  throw new Error("please set USER_KEY env var")
-}
-export const user_key = Buffer.from(process.env.USER_KEY, "hex")
-
-if (!process.env.SIGNING_KEY) {
-  throw new Error("please set SIGNING_KEY env var")
-}
-export const signing_key = process.env.SIGNING_KEY
 
 function encrypt(key: Buffer, plaintext: Buffer) {
   // Ensure plaintext is smaller than 128 bits (16 bytes)
@@ -77,7 +67,38 @@ function decrypt(key: Buffer, r: Buffer, ciphertext: Buffer) {
   return plaintext
 }
 
-export function decryptValue(myCTBalance: bigint, userKey = user_key) {
+export function generateRSAKeyPair() {
+  // Generate a new RSA key pair
+  return crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: "spki",
+      format: "der", // Specify 'der' format for binary data
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "der", // Specify 'der' format for binary data
+    },
+  })
+}
+
+export function decryptRSA(privateKey: Buffer, ciphertext: Buffer) {
+  // Load the private key in PEM format
+  let privateKeyPEM = privateKey.toString("base64")
+  privateKeyPEM = `-----BEGIN PRIVATE KEY-----\n${privateKeyPEM}\n-----END PRIVATE KEY-----`
+
+  // Decrypt the ciphertext using RSA-OAEP
+  return crypto.privateDecrypt(
+    {
+      key: privateKeyPEM,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    ciphertext
+  )
+}
+
+export function decryptValue(myCTBalance: bigint, userKey: string) {
   // Convert CT to bytes
   let ctString = myCTBalance.toString(hexBase)
   let ctArray = Buffer.from(ctString, "hex")
@@ -91,36 +112,32 @@ export function decryptValue(myCTBalance: bigint, userKey = user_key) {
   const r = ctArray.subarray(block_size)
 
   // Decrypt the cipher
-  const decryptedMessage = decrypt(userKey, r, cipher)
+  const decryptedMessage = decrypt(Buffer.from(userKey, "hex"), r, cipher)
 
   return parseInt(decryptedMessage.toString("hex"), block_size)
 }
 
-export async function prepareIT(
-  plaintext: bigint,
-  sender: Signer & { address: string },
-  contractAddress: string,
-  functionSelector: string
-) {
+export function sign(message: string, privateKey: string) {
+  const key = new SigningKey(privateKey)
+  const sig = key.sign(message)
+  return Buffer.concat([getBytes(sig.r), getBytes(sig.s), getBytes(`0x0${sig.v - 27}`)])
+}
+
+export async function prepareIT(plaintext: bigint, sender: User, contractAddress: string, functionSelector: string) {
   // Convert the plaintext to bytes
   const plaintextBytes = Buffer.alloc(8) // Allocate a buffer of size 8 bytes
   plaintextBytes.writeBigUInt64BE(plaintext) // Write the uint64 value to the buffer as little-endian
 
   // Encrypt the plaintext using AES key
-  const { ciphertext, r } = encrypt(user_key, plaintextBytes)
+  const { ciphertext, r } = encrypt(Buffer.from(sender.userKey, "hex"), plaintextBytes)
   const ct = Buffer.concat([ciphertext, r])
 
   const message = solidityPackedKeccak256(
     ["address", "address", "bytes4", "uint256"],
-    [sender.address, contractAddress, functionSelector, BigInt("0x" + ct.toString("hex"))]
+    [sender.wallet.address, contractAddress, functionSelector, BigInt("0x" + ct.toString("hex"))]
   )
 
-  const key = new ethers.SigningKey(signing_key)
-  const sig = key.sign(message)
-  // const signature = await sender.signMessage(hash)
-  // const verified = verifyMessage(hash, signature)
-
-  const signature = Buffer.concat([getBytes(sig.r), getBytes(sig.s), getBytes(`0x0${sig.v - 27}`)])
+  const signature = sign(message, sender.wallet.privateKey)
 
   // Convert the ciphertext to BigInt
   const ctInt = BigInt("0x" + ct.toString("hex"))

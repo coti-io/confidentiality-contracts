@@ -3,11 +3,6 @@ import "@nomicfoundation/hardhat-toolbox"
 import dotenv from "dotenv"
 dotenv.config()
 
-const accounts = [
-  ...(process.env.SIGNING_KEY ? [process.env.SIGNING_KEY] : []),
-  ...(process.env.SIGNING_KEY2 ? [process.env.SIGNING_KEY2] : []),
-]
-
 const config: HardhatUserConfig = {
   defaultNetwork: "cotiv2",
   solidity: "0.8.24",
@@ -16,7 +11,10 @@ const config: HardhatUserConfig = {
     cotiv2: {
       url: "https://node.sodalabs.net",
       chainId: 50505050,
-      accounts,
+    },
+    devnet: {
+      url: "https://devnet.coti.io",
+      chainId: 13068200,
     },
   },
   paths:{
