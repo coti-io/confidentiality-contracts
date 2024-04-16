@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./lib/MpcCore.sol";
-import {ConfidentialERC20} from "./token/ERC20/ConfidentialERC20.sol";
+import "../lib/MpcCore.sol";
+import {ConfidentialERC20} from "../token/ERC20/ConfidentialERC20.sol";
 
 contract ERC20Example is ConfidentialERC20 {
     constructor(

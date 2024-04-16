@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../lib/MpcCore.sol";
+import "../../lib/MpcCore.sol";
 
 contract PrecompilesOffboardToUserKeyTestContract {
-
     bytes userKey;
     uint8 x;
     ctUint8 ctUserKey;
@@ -17,9 +16,12 @@ contract PrecompilesOffboardToUserKeyTestContract {
     function getCTs() public view returns (uint256, uint256, uint256, uint256) {
         return (ct8, ct16, ct32, ct64);
     }
-    
-    function getUserKeyTest(bytes calldata signedEK, bytes calldata signature, address addr) public returns (uint8) {
 
+    function getUserKeyTest(
+        bytes calldata signedEK,
+        bytes calldata signature,
+        address addr
+    ) public returns (uint8) {
         gtUint8 a = MpcCore.setPublic8(uint8(5));
         gtUint8 c = MpcCore.add(a, uint8(5)); // 10
         userKey = MpcCore.getUserKey(signedEK, signature);
@@ -42,12 +44,17 @@ contract PrecompilesOffboardToUserKeyTestContract {
         return ctUserKey;
     }
 
-    function userKeyTest(bytes calldata signedEK, bytes calldata signature) public view returns (bytes memory key) {
-
+    function userKeyTest(
+        bytes calldata signedEK,
+        bytes calldata signature
+    ) public view returns (bytes memory key) {
         return MpcCore.getUserKey(signedEK, signature);
     }
 
-    function offboardToUserTest(uint8 a, address addr) public returns (uint256, uint256, uint256, uint256) {
+    function offboardToUserTest(
+        uint8 a,
+        address addr
+    ) public returns (uint256, uint256, uint256, uint256) {
         gtUint8 a8_s = MpcCore.setPublic8(a);
         gtUint16 a16_s = MpcCore.setPublic16(a);
         gtUint32 a32_s = MpcCore.setPublic32(a);
