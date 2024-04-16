@@ -2,9 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ConfidentialERC721} from "./token/ERC721/ConfidentialERC721.sol";
-import {ConfidentialERC721URIStorage} from "./token/ERC721/ConfidentialERC721URIStorage.sol";
-import "./lib/MpcCore.sol";
+import {ConfidentialERC721} from "../token/ERC721/ConfidentialERC721.sol";
+import {ConfidentialERC721URIStorage} from "../token/ERC721/ConfidentialERC721URIStorage.sol";
+import "../lib/MpcCore.sol";
 
 contract NFTExample is
     ConfidentialERC721,
