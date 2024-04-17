@@ -1,33 +1,38 @@
-import os from "os"
 import fs from "fs"
 import hre from "hardhat"
-import { Wallet, SigningKey, parseEther, getBytes, keccak256 } from "ethers"
+import { Wallet, parseEther, keccak256 } from "ethers"
 import { generateRSAKeyPair, decryptRSA, sign } from "./crypto"
+
+let pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
 
 export type User = Awaited<ReturnType<typeof setupAccounts>>[number]
 
 export async function setupAccounts() {
-  const pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
   if (pks.length == 0) {
     const key1 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
     const key2 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
+    pks = [key1.privateKey, key2.privateKey]
 
     setEnvValue("SIGNING_KEYS", `${key1.privateKey},${key2.privateKey}`)
 
     throw new Error(`Created new random account ${key1.publicKey}. Please use faucet to fund it.`)
   }
 
-  const accounts = pks.map((pk) => new hre.ethers.Wallet(pk, hre.ethers.provider))
-  let userKeys = process.env.USER_KEYS ? process.env.USER_KEYS.split(",") : []
-
-  if (userKeys.length !== accounts.length) {
-    userKeys = await Promise.all(accounts.map(async (account) => await onboard(account)))
-    setEnvValue("USER_KEYS", userKeys.join(","))
-
-    await accounts[0].sendTransaction({ to: accounts[1].address, value: parseEther("0.1") })
+  const wallets = pks.map((pk) => new hre.ethers.Wallet(pk, hre.ethers.provider))
+  if ((await hre.ethers.provider.getBalance(wallets[0].address)) === BigInt("0")) {
+    throw new Error(`Please use faucet to fund account ${wallets[0].address}`)
   }
 
-  return accounts.map((a, i) => ({ wallet: a, userKey: userKeys[i] }))
+  let userKeys = process.env.USER_KEYS ? process.env.USER_KEYS.split(",") : []
+
+  if (userKeys.length !== wallets.length) {
+    userKeys = await Promise.all(wallets.map(async (account) => await onboard(account)))
+    setEnvValue("USER_KEYS", userKeys.join(","))
+
+    await wallets[0].sendTransaction({ to: wallets[1].address, value: parseEther("0.1") })
+  }
+
+  return wallets.map((wallet, i) => ({ wallet, userKey: userKeys[i] }))
 }
 
 async function deploy(owner: Wallet) {
