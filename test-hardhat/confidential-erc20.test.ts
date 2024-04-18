@@ -3,7 +3,7 @@ import { expect } from "chai"
 import { decryptValue, prepareIT } from "./util/crypto"
 import { type User, setupAccounts } from "./util/onboard"
 
-const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
+export const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
 const gasLimit = 12000000
 
 async function deploy() {

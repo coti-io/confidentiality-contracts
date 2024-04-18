@@ -129,12 +129,6 @@ describe("Confidential NFT", function () {
         reverted = false
       } catch (error) {}
       expect(reverted).to.eq(true, "Should have reverted")
-
-      // await expect(
-      //   (
-      //     await contract.connect(otherAccount.wallet).transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      //   ).wait()
-      // ).to.be.revertedWith("ERC721: transfer caller is not owner nor approved")
     })
   })
 

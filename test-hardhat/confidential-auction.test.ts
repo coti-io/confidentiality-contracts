@@ -2,19 +2,24 @@ import hre from "hardhat"
 import { expect } from "chai"
 import { decryptValue, prepareIT } from "./util/crypto"
 import { type User, setupAccounts } from "./util/onboard"
+import { deploymentInfo } from "./confidential-erc20.test"
 
 const gasLimit = 12000000
 
 async function deploy() {
   const [owner, otherAccount] = await setupAccounts()
 
-  const tokenAddress = "0x19c0bb1bf8b923855598405ab9cc88c4a8aa9540"
-  const token = await hre.ethers.getContractAt("ERC20Example", tokenAddress)
+  const tokenContract = await hre.ethers.getContractFactory("ERC20Example")
+  const { name, symbol, initialSupply } = deploymentInfo
+  const token = await tokenContract
+    .connect(owner.wallet)
+    .deploy(name, symbol, initialSupply, { gasLimit, from: owner.wallet.address })
+  await token.waitForDeployment()
 
   const factory = await hre.ethers.getContractFactory("ConfidentialAuction")
   const contract = await factory
     .connect(owner.wallet)
-    .deploy(otherAccount.wallet.address, tokenAddress, 60 * 60 * 24, true, { gasLimit })
+    .deploy(otherAccount.wallet.address, await token.getAddress(), 60 * 60 * 24, true, { gasLimit })
   await contract.waitForDeployment()
   // const contract = await hre.ethers.getContractAt("ConfidentialAuction", "0xFA71F49669d65dbb91d268780828cB2449CB473c")
   //   console.log(`contractAddress ${await contract.getAddress()}`)
