@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
-import { prepareIT } from "./util/crypto"
+import { decryptValue } from "./util/crypto"
 
 const gasLimit = 12000000
 let last_random_value = 0
@@ -20,7 +20,7 @@ function buildTest(
     const contract = await factory.deploy({ gasLimit })
     await contract.waitForDeployment()
 
-    await (await contract.getFunction(func)(...params)).wait()
+    await (await contract.getFunction(func)(...params, { gasLimit })).wait()
     const result = await contract.getFunction(resFunc)()
     if (resFunc === "getRandom") {
       expect(result).to.not.equal(expectedResults[0])
@@ -33,20 +33,19 @@ function buildTest(
   })
 }
 
-function buildTestWithUser(contractName: string, func: string, param: bigint | number | boolean) {
-  it(`${contractName}.${func}() should return the correct user decrypted value`, async function () {
+function buildTestWithUser(contractName: string, func: string, resFunc: string, param: bigint | number | boolean) {
+  it(`${contractName}.${func}(${params}, <address>) should return the correct user decrypted value`, async function () {
     const [owner] = await setupAccounts()
 
     const factory = await hre.ethers.getContractFactory(contractName, owner.wallet)
     const contract = await factory.deploy({ gasLimit })
     await contract.waitForDeployment()
 
-    const f = contract.getFunction(func)
-    const selector = f.fragment.selector
-    const { ctInt, signature } = await prepareIT(BigInt(param), owner, await contract.getAddress(), selector)
-
-    const result = await contract.getFunction(func).staticCall(ctInt, signature)
-    expect(result).to.deep.equal([param, param, param, param])
+    await (await contract.getFunction(func)(param, owner.wallet.address, { gasLimit: 12000000 })).wait()
+    const results = await contract.getFunction(resFunc)()
+    for (const result of results) {
+      expect(decryptValue(result, owner.userKey)).to.equal(param)
+    }
   })
 }
 
@@ -57,7 +56,7 @@ const numBits = 7
 const bool_a = true
 const bool_b = false
 const [a, b] = params
-describe.only("Precompile", function () {
+describe("Precompile", function () {
   buildTest("PrecompilesArythmeticTestsContract", "addTest", "getResult", params, a + b)
   buildTest("PrecompilesArythmeticTestsContract", "subTest", "getResult", params, a - b)
   buildTest("PrecompilesArythmeticTestsContract", "mulTest", "getResult16", params, a * b)
@@ -91,10 +90,10 @@ describe.only("Precompile", function () {
   buildTest("PrecompilesTransferTestsContract", "transferTest", "getResults", [a, b, b], a - b, b + b, true)
   buildTest("PrecompilesTransferScalarTestsContract", "transferScalarTest", "getResults", [a, b, b], a - b, b + b, true)
 
-  buildTest("PrecompilesMiscellaneousTestsContract", "offboardOnboardTest", "getResult", [a, a, a, a], a, a, a, a)
+  buildTest("PrecompilesMiscellaneousTestsContract", "offboardOnboardTest", "getResult", [a, a, a, a], a)
   buildTest("PrecompilesMiscellaneousTestsContract", "notTest", "getBoolResult", [!!a], !a)
 
-  // buildTestWithUser("PrecompilesOffboardToUserKeyTestContract", "offboardToUserTest", a)
+  buildTestWithUser("PrecompilesOffboardToUserKeyTestContract", "offboardToUserTest", "getCTs", a)
 
   buildTest("PrecompilesMiscellaneous1TestsContract", "randomTest", "getRandom", [], last_random_value)
   buildTest("PrecompilesMiscellaneous1TestsContract", "randomBoundedTest", "getRandom", [numBits], last_random_value)
