@@ -26,7 +26,8 @@ export async function setupAccounts() {
   let userKeys = process.env.USER_KEYS ? process.env.USER_KEYS.split(",") : []
 
   if (userKeys.length !== wallets.length) {
-    userKeys = await Promise.all(wallets.map(async (account) => await onboard(account)))
+    const contract = await deploy(wallets[0])
+    userKeys = await Promise.all(wallets.map(async (account) => await onboard(contract, account)))
     setEnvValue("USER_KEYS", userKeys.join(","))
 
     await wallets[0].sendTransaction({ to: wallets[1].address, value: parseEther("0.1") })
@@ -36,18 +37,18 @@ export async function setupAccounts() {
 }
 
 async function deploy(owner: Wallet) {
-  const factory = await hre.ethers.getContractFactory("GetUserKey", owner)
+  const factory = await hre.ethers.getContractFactory("AccountOnboard", owner)
   const contract = await factory.connect(owner).deploy({ gasLimit: 12000000 })
   return contract.waitForDeployment()
 }
 
-async function onboard(user: Wallet) {
-  const contract = await deploy(user)
+async function onboard(contract: Awaited<ReturnType<typeof deploy>>, user: Wallet) {
   const { publicKey, privateKey } = generateRSAKeyPair()
 
   const signedEK = sign(keccak256(publicKey), user.privateKey)
-  await (await contract.connect(user).getUserKey(publicKey, signedEK, { gasLimit: 12000000 })).wait()
-  const encryptedKey = await contract.connect(user).getSavedUserKey()
+  await (await contract.connect(user).OnboardAccount(publicKey, signedEK, { gasLimit: 12000000 })).wait()
+  const event = await contract.queryFilter(contract.filters.AccountOnboarded(user.address))
+  const encryptedKey = event[0].args.userKey
   const buf = Buffer.from(encryptedKey.substring(2), "hex")
   return decryptRSA(privateKey, buf).toString("hex")
 }

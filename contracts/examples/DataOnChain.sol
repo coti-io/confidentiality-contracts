@@ -1,6 +1,6 @@
 pragma solidity ^0.8.19;
 
-import "MpcCore.sol";
+import "../lib/MpcCore.sol";
 
 contract DataOnChain {
 
