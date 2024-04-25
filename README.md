@@ -1,3 +1,24 @@
+# Coti V2 Confidential Smart Contracts
+
+|                              | python-sdk   | hardhat    | sdk-typescript | Description                                              |
+| ---------------------------- | ------------ | ---------- | -------------- | -------------------------------------------------------- |
+| AccountOnboard               | deployment\* | deployment | -              | Onboard to an account - used for decrypting and signing  |
+|                              | execution    | execution  | execution      |                                                          |
+| ERC20Example                 | deployment   | deployment | -              | Confidential ERC20 example - sending encrypted amount    |
+|                              | execution    | execution  | execution      |                                                          |
+| NFTExample                   | -            | deployment | -              | Confidential NFT example - saving encrypted data         |
+|                              | -            | execution  | -              |                                                          |
+| ConfidentialAuction          | -            | deployment | -              | Confidential auction - encripted bid amount              |
+|                              | -            | execution  | -              |                                                          |
+| ConfidentialIdentityRegistry | -            | deployment | -              | Confidential identity registry - encrypted identity data |
+|                              | -            | execution  | -              |                                                          |
+| DataOnChain                  | deployment   | -          | -              | Basic encryption example                                 |
+|                              | execution    | -          | -              |                                                          |
+| Precompile                   | deployment   | deployment | -              | Thorough tests of the precompile functionality           |
+|                              | execution    | execution  | -              |                                                          |
+
+- no deployment needed (system contract)
+
 ## Confidentiality contracts for Coti V2 with examples
 
 This repository contains smart contracts that implement confidentiality features using the Coti V2 protocol. The contracts provide examples for various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, auctions, and identity management.
