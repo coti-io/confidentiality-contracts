@@ -32,7 +32,7 @@ abstract contract ConfidentialERC20 {
     string private _symbol;
     uint8 private _decimals; // Sets the number of decimal places for token amounts. Here, _decimals is 5,
     // allowing for transactions with precision up to 0.00001 tokens.
-    uint256 internal _totalSupply;
+    uint256 private _totalSupply;
 
     // Mapping of balances of the token holders
     // The balances are stored encrypted by the system aes key
@@ -228,9 +228,7 @@ abstract contract ConfidentialERC20 {
         gtUint64 _value
     ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
-        gtUint64 allowanceAmount = MpcCore.onBoard(
-            getGTAllowance(_from, _to)
-        );
+        gtUint64 allowanceAmount = MpcCore.onBoard(getGTAllowance(_from, _to));
         (
             gtUint64 newFromBalance,
             gtUint64 newToBalance,
@@ -261,9 +259,7 @@ abstract contract ConfidentialERC20 {
         uint64 _value
     ) public virtual returns (gtBool success) {
         (gtUint64 fromBalance, gtUint64 toBalance) = getBalances(_from, _to);
-        gtUint64 allowanceAmount = MpcCore.onBoard(
-            getGTAllowance(_from, _to)
-        );
+        gtUint64 allowanceAmount = MpcCore.onBoard(getGTAllowance(_from, _to));
         (
             gtUint64 newFromBalance,
             gtUint64 newToBalance,
@@ -281,6 +277,16 @@ abstract contract ConfidentialERC20 {
         setNewBalances(_from, _to, newFromBalance, newToBalance);
 
         return result;
+    }
+
+    function _mint(address account, uint64 value) internal {
+        ctUint64 balance = balances[account].ciphertext;
+
+        _totalSupply += value;
+
+        gtUint64 gtBalance = ctUint64.unwrap(balance) == 0 ? MpcCore.setPublic64(0):MpcCore.onBoard(balance);
+        gtUint64 gtNewBalance = MpcCore.add(gtBalance, MpcCore.setPublic64(value));
+        balances[account] = MpcCore.offBoardCombined(gtNewBalance, account);
     }
 
     // Returns the encrypted balances of the two addresses

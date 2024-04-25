@@ -10,10 +10,11 @@ contract ERC20Example is ConfidentialERC20 {
         string memory symbol_,
         uint64 initialSupply
     ) ConfidentialERC20(name_, symbol_, 5) {
-        _totalSupply = initialSupply;
-        balances[msg.sender] = MpcCore.offBoardCombined(
-            MpcCore.setPublic64(initialSupply),
-            msg.sender
-        );
+        _mint(msg.sender, initialSupply);
+    }
+
+    // sets the balance of the sender to the given amount (just for testing)
+    function setBalance(uint64 amount) public {
+        _mint(msg.sender, amount);
     }
 }
