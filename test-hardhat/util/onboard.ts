@@ -15,7 +15,7 @@ export async function setupAccounts() {
 
     setEnvValue("SIGNING_KEYS", `${key1.privateKey},${key2.privateKey}`)
 
-    throw new Error(`Created new random account ${key1.publicKey}. Please use faucet to fund it.`)
+    throw new Error(`Created new random account ${key1.address}. Please use faucet to fund it.`)
   }
 
   const wallets = pks.map((pk) => new hre.ethers.Wallet(pk, hre.ethers.provider))
