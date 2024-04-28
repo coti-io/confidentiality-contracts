@@ -12,25 +12,26 @@ There are a few different ways to interact with the contracts:
 2. Using the [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript)
 3. Using [hardhat development environment](https://github.com/coti-io/confidentiality-contracts)
 
-|                              | python-sdk    | hardhat    | sdk-typescript | Description                                                                    |
-| ---------------------------- |---------------| ---------- | -------------- |--------------------------------------------------------------------------------|
-| AccountOnboard               | deployment(*) | deployment | -              | Onboard a EOA account - During onboard network creates AES unique for that EOA |
-|                              | execution     | execution  | execution      | which is used for decrypting values sent back from the network                 |
-| ERC20Example                 | deployment    | deployment | -              | Confidential ERC20 - deploy and transfer encrypted amount of funds             |
-|                              | execution     | execution  | execution      |                                                                                |
-| NFTExample                   | -             | deployment | -              | Confidential NFT example - saving encrypted data                               |
-|                              | -             | execution  | -              |                                                                                |
-| ConfidentialAuction          | -             | deployment | -              | Confidential auction - encrypted bid amount                                    |
-|                              | -             | execution  | -              |                                                                                |
-| ConfidentialIdentityRegistry | -             | deployment | -              | Confidential Identity Registry - Encrypted identity data                       |
-|                              | -             | execution  | -              |                                                                                |
-| DataOnChain                  | deployment    | -          | -              | Basic encryption and decryption - Good place to start explorining network      |
-|                              | execution     | -          | -              | capabilties                                                                    |
-| Precompile                   | deployment    | deployment | -              | Thorough examples of the precompile functionality                              |
-|                              | execution     | execution  | -              |                                                                                |
+|                              | python-sdk     | hardhat    | sdk-typescript | Description                                                                    |
+| ---------------------------- | -------------- | ---------- | -------------- | ------------------------------------------------------------------------------ |
+| AccountOnboard               | deployment(\*) | deployment | -              | Onboard a EOA account - During onboard network creates AES unique for that EOA |
+|                              | execution      | execution  | execution      | which is used for decrypting values sent back from the network                 |
+| ERC20Example                 | deployment     | deployment | -              | Confidential ERC20 - deploy and transfer encrypted amount of funds             |
+|                              | execution      | execution  | execution      |                                                                                |
+| NFTExample                   | -              | deployment | -              | Confidential NFT example - saving encrypted data                               |
+|                              | -              | execution  | -              |                                                                                |
+| ConfidentialAuction          | -              | deployment | -              | Confidential auction - encrypted bid amount                                    |
+|                              | -              | execution  | -              |                                                                                |
+| ConfidentialIdentityRegistry | -              | deployment | -              | Confidential Identity Registry - Encrypted identity data                       |
+|                              | -              | execution  | -              |                                                                                |
+| DataOnChain                  | deployment     | -          | -              | Basic encryption and decryption - Good place to start explorining network      |
+|                              | execution      | -          | execution      | capabilties                                                                    |
+| Precompile                   | deployment     | deployment | -              | Thorough examples of the precompile functionality                              |
+|                              | execution      | execution  | -              |                                                                                |
 
-(*) no deployment needed (system contract)
-* Due to the nature of ongoing development, future version might break existing functionality
+(\*) no deployment needed (system contract)
+
+- Due to the nature of ongoing development, future version might break existing functionality
 
 ## Getting initial funds (Faucet)
 
@@ -59,8 +60,9 @@ How to get started?
 In order to follow the transactions sent to the node, use the web_socket.py to be notified and see their onchain details.
 
 Pending enhancements:
-* Versioned pypi library
-* Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more...
+
+- Versioned pypi library
+- Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more...
 
 #### To report issues, please use the [github issues](https://github.com/coti-io/coti-sdk-python/issues)
 
@@ -74,8 +76,9 @@ Examples that described above resides in [coti-sdk-typescript/src/examples], the
 - \*Runnning test will create an account automatically, that will be saved into .env file and will need to be funded using a faucet
 
 Pending enhancements:
-* Versioned library
-* Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more...
+
+- Versioned library
+- Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more...
 
 #### To report issues, please use the [github issues](https://github.com/coti-io/coti-sdk-typescript/issues)
 
