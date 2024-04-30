@@ -26,11 +26,11 @@ export async function setupAccounts() {
   let userKeys = process.env.USER_KEYS ? process.env.USER_KEYS.split(",") : []
 
   if (userKeys.length !== wallets.length) {
+    await (await wallets[0].sendTransaction({ to: wallets[1].address, value: parseEther("0.1") })).wait()
+
     const contract = await deploy(wallets[0])
     userKeys = await Promise.all(wallets.map(async (account) => await onboard(contract, account)))
     setEnvValue("USER_KEYS", userKeys.join(","))
-
-    await wallets[0].sendTransaction({ to: wallets[1].address, value: parseEther("0.1") })
   }
 
   return wallets.map((wallet, i) => ({ wallet, userKey: userKeys[i] }))
