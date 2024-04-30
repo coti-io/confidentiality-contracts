@@ -21,6 +21,10 @@ contract DataOnChain {
         return ctNetworkSomeEncryptedValue;
     }
 
+    function setNetworkSomeEncryptedValue(ctUint64 networkEncrypted) external {
+        ctNetworkSomeEncryptedValue = networkEncrypted;
+    }
+
     function getNetworkSomeEncryptedValueEncryptedInput() external view returns (ctUint64 ctSomeEncryptedValue) {
         return ctNetworkSomeEncryptedValueEncryptedInput;
     }
