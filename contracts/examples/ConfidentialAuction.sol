@@ -1,5 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause-Clear
-
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import {ConfidentialERC20} from "../token/ERC20/ConfidentialERC20.sol";

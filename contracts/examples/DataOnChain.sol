@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import "../lib/MpcCore.sol";
@@ -63,7 +64,7 @@ contract DataOnChain {
         emit UserEncryptedValue(msg.sender, ctUserSomeEncryptedValueEncryptedInput);
     }
 
-    function getSomeValue() external returns (uint64 value) {
+    function getSomeValue() external view returns (uint64 value) {
         return clearValue;
     }
 
@@ -74,7 +75,7 @@ contract DataOnChain {
         ctUserArithmeticResult = MpcCore.offBoardToUser(result, msg.sender);
     }
 
-    function getUserArithmeticResult() external returns (ctUint64 value){
+    function getUserArithmeticResult() external view returns (ctUint64 value){
         return ctUserArithmeticResult;
     }
 }
