@@ -9,7 +9,7 @@ The contracts are of Solidity and can be compiled and deployed using popular dev
 There are a few different ways to interact with the contracts:
 
 1. Using the [python-sdk](https://github.com/coti-io/coti-sdk-python)
-2. Using the [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript)
+2. Using the [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript-examples)
 3. Using [hardhat development environment](https://github.com/coti-io/confidentiality-contracts)
 
 |                              | python-sdk     | hardhat    | sdk-typescript | Description                                                                    |
@@ -66,7 +66,7 @@ Pending enhancements:
 
 #### To report issues, please use the [github issues](https://github.com/coti-io/coti-sdk-python/issues)
 
-## Typescript SDK ([coti-sdk-typescript](https://github.com/coti-io/coti-sdk-typescript)) - Usage
+## Typescript SDK Examples ([coti-sdk-typescript-examples](https://github.com/coti-io/coti-sdk-typescript-examples)) - Usage
 
 Examples that described above resides in [coti-sdk-typescript/src/examples], the solidity contracts are in confidentiality-contracts repo that is imported as a git submodule.
 
@@ -80,7 +80,7 @@ Pending enhancements:
 - Versioned library
 - Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more...
 
-#### To report issues, please use the [github issues](https://github.com/coti-io/coti-sdk-typescript/issues)
+#### To report issues, please use the [github issues](https://github.com/coti-io/coti-sdk-typescript-examples/issues)
 
 ## Hardhat ([confidential-contracts](https://github.com/coti-io/confidentiality-contracts)) - Usage
 

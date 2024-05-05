@@ -1,6 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-core"
+import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 
 export const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const

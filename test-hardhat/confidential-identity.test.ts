@@ -1,6 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { decryptValue, prepareIT } from "@coti-io/coti-sdk-core"
+import { decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 
 const gasLimit = 12000000

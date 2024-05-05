@@ -1,7 +1,7 @@
 import fs from "fs"
 import hre from "hardhat"
 import { Wallet, parseEther } from "ethers"
-import { ConfidentialAccount } from "@coti-io/coti-sdk-core"
+import { ConfidentialAccount } from "@coti-io/coti-sdk-typescript"
 
 let pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
 

@@ -11,7 +11,7 @@
     "test": "yarn hardhat test"
   },
   "devDependencies": {
-    "@coti-io/coti-sdk-core": "https://github.com/coti-io/coti-sdk-core.git",
+    "@coti-io/coti-sdk-typescript": "https://github.com/coti-io/coti-sdk-typescript.git",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
