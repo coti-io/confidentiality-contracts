@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { decryptValue, prepareIT } from "./util/crypto"
-import { type User, setupAccounts } from "./util/onboard"
+import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-core"
+import { setupAccounts } from "./util/onboard"
 
 export const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
 const gasLimit = 12000000
@@ -19,7 +19,11 @@ async function deploy() {
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
-async function expectBalance(token: Awaited<ReturnType<typeof deploy>>["contract"], amount: number, user: User) {
+async function expectBalance(
+  token: Awaited<ReturnType<typeof deploy>>["contract"],
+  amount: number,
+  user: ConfidentialAccount
+) {
   const ctBalance = await token.connect(user.wallet).balanceOf()
   let balance = decryptValue(ctBalance, user.userKey)
   expect(balance).to.equal(amount)
@@ -28,7 +32,7 @@ async function expectBalance(token: Awaited<ReturnType<typeof deploy>>["contract
 async function expectAllowance(
   contract: Awaited<ReturnType<typeof deploy>>["contract"],
   amount: number,
-  owner: User,
+  owner: ConfidentialAccount,
   spenderAddress: string
 ) {
   const ctAllowance = await contract.allowance(owner.wallet.address, spenderAddress)

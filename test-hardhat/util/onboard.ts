@@ -1,11 +1,9 @@
 import fs from "fs"
 import hre from "hardhat"
-import { Wallet, parseEther, keccak256 } from "ethers"
-import { generateRSAKeyPair, decryptRSA, sign } from "./crypto"
+import { Wallet, parseEther } from "ethers"
+import { ConfidentialAccount } from "@coti-io/coti-sdk-core"
 
 let pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
-
-export type User = Awaited<ReturnType<typeof setupAccounts>>[number]
 
 export async function setupAccounts() {
   if (pks.length == 0) {
@@ -25,39 +23,29 @@ export async function setupAccounts() {
 
   let userKeys = process.env.USER_KEYS ? process.env.USER_KEYS.split(",") : []
 
+  const toAccount = async (wallet: Wallet, userKey?: string) => {
+    if (userKey) {
+      return new ConfidentialAccount(wallet, userKey)
+    }
+
+    console.log("************* Onboarding user ", wallet.address, " *************")
+    const account = await ConfidentialAccount.onboard(wallet)
+    console.log("************* Onboarded! created user key and saved into .env file *************")
+
+    return account
+  }
+
+  let accounts: ConfidentialAccount[] = []
   if (userKeys.length !== wallets.length) {
     await (await wallets[0].sendTransaction({ to: wallets[1].address, value: parseEther("0.1") })).wait()
 
-    const contract = await deploy(wallets[0])
-    userKeys = await Promise.all(wallets.map(async (account) => await onboard(contract, account)))
-    setEnvValue("USER_KEYS", userKeys.join(","))
+    accounts = await Promise.all(wallets.map(async (account, i) => await toAccount(account)))
+    setEnvValue("USER_KEYS", accounts.map((a) => a.userKey).join(","))
+  } else {
+    accounts = await Promise.all(wallets.map(async (account, i) => await toAccount(account, userKeys[i])))
   }
 
-  return wallets.map((wallet, i) => ({ wallet, userKey: userKeys[i] }))
-}
-
-async function deploy(owner: Wallet) {
-  const factory = await hre.ethers.getContractFactory("AccountOnboard", owner)
-  const contract = await factory.connect(owner).deploy({ gasLimit: 12000000 })
-  return contract.waitForDeployment()
-}
-
-async function onboard(contract: Awaited<ReturnType<typeof deploy>>, user: Wallet) {
-  const { publicKey, privateKey } = generateRSAKeyPair()
-
-  const signedEK = sign(keccak256(publicKey), user.privateKey)
-  const receipt = await (
-    await contract.connect(user).OnboardAccount(publicKey, signedEK, { gasLimit: 12000000 })
-  ).wait()
-  if (!receipt || !receipt.logs || !receipt.logs[0]) {
-    throw new Error("failed to onboard, receipt or receipt.logs or receipt.logs[0] is undefined")
-  }
-  const log = receipt.logs[0]
-  const eventFragment = contract.interface.getEvent("AccountOnboarded")
-  const decodedEvent = contract.interface.decodeEventLog(eventFragment, log.data, log.topics)
-  const encryptedKey = decodedEvent.userKey
-  const buf = Buffer.from(encryptedKey.substring(2), "hex")
-  return decryptRSA(privateKey, buf).toString("hex")
+  return accounts
 }
 
 function setEnvValue(key: string, value: string) {

@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { decryptValue, prepareIT } from "./util/crypto"
-import { type User, setupAccounts } from "./util/onboard"
+import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-core"
+import { setupAccounts } from "./util/onboard"
 import { deploymentInfo } from "./confidential-erc20.test"
 
 const gasLimit = 12000000
@@ -26,13 +26,21 @@ async function deploy() {
   return { token, contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
-async function expectBalance(token: Awaited<ReturnType<typeof deploy>>["token"], amount: number, user: User) {
+async function expectBalance(
+  token: Awaited<ReturnType<typeof deploy>>["token"],
+  amount: number,
+  user: ConfidentialAccount
+) {
   const ctBalance = await token.connect(user.wallet).balanceOf()
   let balance = decryptValue(ctBalance, user.userKey)
   expect(balance).to.equal(amount)
 }
 
-async function expectBid(contract: Awaited<ReturnType<typeof deploy>>["contract"], amount: number, user: User) {
+async function expectBid(
+  contract: Awaited<ReturnType<typeof deploy>>["contract"],
+  amount: number,
+  user: ConfidentialAccount
+) {
   const ctBalance = await contract.connect(user.wallet).getBid.staticCall()
   let bid = decryptValue(ctBalance, user.userKey)
   expect(bid).to.equal(amount)

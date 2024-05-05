@@ -1,7 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
-import { decryptValue } from "./util/crypto"
 
 const gasLimit = 12000000
 let last_random_value = 0
@@ -44,7 +43,7 @@ function buildTestWithUser(contractName: string, func: string, resFunc: string, 
     await (await contract.getFunction(func)(param, owner.wallet.address, { gasLimit: 12000000 })).wait()
     const results = await contract.getFunction(resFunc)()
     for (const result of results) {
-      expect(decryptValue(result, owner.userKey)).to.equal(param)
+      expect(owner.decryptValue(result)).to.equal(param)
     }
   })
 }
