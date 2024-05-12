@@ -6,14 +6,18 @@ The contracts provide examples for various use cases, such as Non-Fungible Token
 These contracts demonstrate how to leverage the confidentiality features of the COTI V2 protocol to enhance privacy and security in decentralized applications.
 The contracts are of Solidity and can be compiled and deployed using popular development tools like Hardhat and Foundry (Work in progress).
 
+Important Links:
+
+[COTI](https://coti.io) / [GitBook](https://docs.coti.io) / [Explorer-DevNet](https://explorer-devnet.coti.io) / [Faucet](https://faucet.coti.io)
+
 There are a few different ways to interact with the contracts:
 
-1. Using the [python-sdk](https://github.com/coti-io/coti-sdk-python)
-2. Using the [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript-examples)
-3. Using [hardhat development environment](https://github.com/coti-io/confidentiality-contracts)
+1. [python-sdk](https://github.com/coti-io/coti-sdk-python)
+2. [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript) / [typescript-sdk-examples](https://github.com/coti-io/coti-sdk-typescript-examples)
+3. [hardhat development environment](https://github.com/coti-io/confidentiality-contracts)
 
-| Contract                       |            | python-sdk | hardhat sdk | typescrypt sdk | Contract Description                                                                                                                          |
-|--------------------------------|------------|------------|-------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Contract                       |            | python sdk  | hardhat sdk | typescript sdk | Contract Description                                                                                                                          |
+|--------------------------------|------------|-------------|-------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | `AccountOnboard`               | deployment | ✅ *        | ✅           | ❌              | Onboard a EOA account - During onboard network creates AES unique for that EOA which is used for decrypting values sent back from the network |
 | `AccountOnboard`               | execution  | ✅          | ✅           | ✅              | "                                                                                                                                             |
 | `ERC20Example`                 | deployment | ✅          | ✅           | ❌              | Confidential ERC20 - deploy and transfer encrypted amount of funds                                                                            |
@@ -27,53 +31,49 @@ There are a few different ways to interact with the contracts:
 | `DataOnChain`                  | deployment | ✅          | ❌           | ❌              | Basic encryption and decryption - Good place to start explorining network capabilties                                                         |
 | `DataOnChain`                  | execution  | ✅          | ❌           | ✅              | "                                                                                                                                             |
 | `Precompile`                   | deployment | ✅          | ✅           | ❌              | Thorough examples of the precompile functionality                                                                                             |
-| `Precompile`                   | execution  | ✅          | ✅           | ❌              | "                                                                                                                                             |-              |                                                                                |
+| `Precompile`                   | execution  | ✅          | ✅           | ❌              | "                                                                                                                                             |-              |              
 
-(\*) no deployment needed (system contract)
+(*) no deployment needed (system contract)
 
 > [!NOTE]  
 > Due to the nature of ongoing development, future version might break existing functionality
 
-## Using the faucet to request funds
+## Faucet to request funds
 
-A BOT faucet is not yet available. To request funds send a telegram message to [@gmesika](https://t.me/gmesika) with the following message:
-
-`please send devnet COTI to account <<your_eoa_address>>`
+🤖 Faucet BOT is available!  To request devnet/testnet coins funding use: [faucet](https://faucet.coti.io)
 
 ## Python SDK ([coti-sdk-python](https://github.com/coti-io/coti-sdk-python))
 ### Usage
 
-The examples described above reside in [coti-sdk-python/examples](https://github.com/coti-io/coti-sdk-python/tree/main/examples), the solidity contracts are located in the [confidentiality-contracts](https://github.com/coti-io/confidentiality-contracts) repo, which is imported as a git submodule.
+The examples described above reside in [coti-sdk-python/examples](https://github.com/coti-io/coti-sdk-python/tree/main/examples), the solidity contracts are located in the [confidentiality-contracts](https://github.com/coti-io/confidentiality-contracts) repository, which is imported as a git submodule part of the python sdk.
 
-When `data_on_chain.py` is executed, it will deploy the contract and create a json file with the details of the deployed contract under the [compiled_contracts] directory.
-
-Check out the .env file for more details.
-
-The python examples use primitive deployment management that mostly checks if there is a json file under the `compiled_contracts` directory and doesn't deploy when one exists. If such json file does not exist, the contract will be deployed.
+Check out the .env file for more details - The python examples use primitive deployment management that mostly checks if there is a json file under the `compiled_contracts` directory and doesn't deploy when one exists. If such json file does not exist, the contract will be deployed.
 
 ### Getting Started
 
 **1. Generate EOA**
 
-Run the `native_transfer.py` script, it will transfer a small amount to a random address - demonstrating standard native transfer.
+Run the `native_transfer.py` script, it will transfer a small amount of coins to a random address - demonstrating standard native transfer.
 
-It will create a new EOA (you will see your public address in the script output), and an `ACCOUNT_PRIVATE_KEY` will be recorded in the `.env` file.
+During that process, it will create a new EOA (you will see your public address in the script output), and an `ACCOUNT_PRIVATE_KEY` will be saved into the `.env` file.
 
-It will fail on first deploy since the account doesn't have any funds. Refer to the faucet section above
+It will of course fail on first attempt of execution since the newly created account doesn't have any funds. Refer to the faucet section above to transfer funds into that account and try again.
 
 **2. Generate Encryption Key**
 
-Run the `onboard_account.py` script, it will request an AES encryption key from the network, specific for this account and it will log it in the `.env` file (mandatory for every action that does COTI v2 on-chain computation)
+Run the `onboard_account.py` script, it will request an AES encryption key from the network, that is specific for the account and it will save the AES key into the `.env` file,
+That value is mandatory for every action that involves computation using COTI v2 on-chain.
 
 **3. Execute**
 
-Now you can run any other example, e.g. `precompiles_examples.py` (see above for complete list)
+Now you can run any other example, e.g. `precompiles_examples.py` (see above for complete list).
+We recommend that you get familiar with `data_on_chain.py`, it best descibes the basics of keeping data encrypted on-chain and doing simple actions (encryption, decryption, computation, verification...)
 
 In order to follow the transactions sent to the node, use the `web_socket.py` script to be notified and see their on-chain details.
 
 Pending enhancements:
 
-- Versioned pypi library
+- Versioned pypi library (seperating the library repository from the examples repository)
 - Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more.
 
 #### To report issues, please create a [github issue](https://github.com/coti-io/coti-sdk-python/issues)
@@ -100,7 +100,7 @@ The examples described above reside in [coti-sdk-typescript/src/examples](https:
 
 #### Pending enhancements
 
-- Versioned library
+- Publishing SDK via npmjs
 - Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more.
 
 #### To report issues, please create a [github issue](https://github.com/coti-io/coti-sdk-typescript/issues)
