@@ -1,20 +1,22 @@
-# COTI V2 Confidential Smart Contracts with examples
+# COTI V2 Confidential Smart Contracts | SDKs and Examples
 
-All repositories specified below contains smart contracts that implement confidentiality features using the COTI V2 protocol.
+All repositories specified below contain smart contracts that implement confidentiality features using the COTI V2 protocol.
 The contracts provide examples for various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, Auction, and Identity management.
 
 These contracts demonstrate how to leverage the confidentiality features of the COTI V2 protocol to enhance privacy and security in decentralized applications.
 The contracts are of Solidity and can be compiled and deployed using popular development tools like Hardhat and Foundry (Work in progress).
 
-Important Links:
+#### Important Links:
 
-[COTI](https://coti.io) / [GitBook](https://docs.coti.io) / [Explorer-DevNet](https://explorer-devnet.coti.io) / [Faucet](https://faucet.coti.io)
+[Docs](https://docs.coti.io) | [Devnet Explorer](https://explorer-devnet.coti.io) | [Faucet](https://faucet.coti.io)
 
-There are a few different ways to interact with the contracts:
+Interact with the contract using any of the following:
 
-1. [python-sdk](https://github.com/coti-io/coti-sdk-python)
-2. [typescript-sdk](https://github.com/coti-io/coti-sdk-typescript) / [typescript-sdk-examples](https://github.com/coti-io/coti-sdk-typescript-examples)
-3. [hardhat development environment](https://github.com/coti-io/confidentiality-contracts)
+1. [Python SDK](https://github.com/coti-io/coti-sdk-python)
+2. [Typescript SDK](https://github.com/coti-io/coti-sdk-typescript) | [Typescript SDK Examples](https://github.com/coti-io/coti-sdk-typescript-examples)
+3. [Hardhat Dev Environment](https://github.com/coti-io/confidentiality-contracts)
+
+The following contracts are available in each of the packages:
 
 | Contract                       |            | python sdk  | hardhat sdk | typescript sdk | Contract Description                                                                                                                          |
 |--------------------------------|------------|-------------|-------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -38,75 +40,30 @@ There are a few different ways to interact with the contracts:
 > [!NOTE]  
 > Due to the nature of ongoing development, future version might break existing functionality
 
-## Faucet to request funds
+### Faucet
 
-🤖 Faucet BOT is available!  To request devnet/testnet coins funding use: [faucet](https://faucet.coti.io)
+🤖 To request devnet/testnet funds use our [faucet](https://faucet.coti.io)
 
-## Python SDK ([coti-sdk-python](https://github.com/coti-io/coti-sdk-python))
-### Usage
+# Hardhat ([confidential-contracts](https://github.com/coti-io/confidentiality-contracts))
 
-The examples described above reside in [coti-sdk-python/examples](https://github.com/coti-io/coti-sdk-python/tree/main/examples), the solidity contracts are located in the [confidentiality-contracts](https://github.com/coti-io/confidentiality-contracts) repository, which is imported as a git submodule part of the python sdk.
+The `confidential-contracts` project is comprised of three main components:
 
-Check out the .env file for more details - The python examples use primitive deployment management that mostly checks if there is a json file under the `compiled_contracts` directory and doesn't deploy when one exists. If such json file does not exist, the contract will be deployed.
+1. Reference libraries (located in `contracts/lib`): containts the `MpcCore` and `MpcInterface` libraries referenced by all other SDKs.
+2. gcEVM Precompiles (located in `contracts/examples/precompiles`): These are precompiles specific to the COTI protocol and are also referenced by all other SDKs. For a full description of these precompiles visit the [precompiles readme](contracts/examples/precompiles/precompiles_readme.md).
+3. Example contracts (located in `contracts/examples`): the examples folder contain Solidity contracts that perform various various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, Auction, and Identity management. It contains smart contracts that implement confidentiality features using the COTI V2 protocol.
 
-### Getting Started
+The following example contracts are available for Hardhat Runtime Environment for deployment and execution:
 
-**1. Generate EOA**
+| Contract                     | Contract Description                                                                                                                          |
+|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| AccountOnboard               | Onboard a EOA account - During onboard network creates AES unique for that EOA which is used for decrypting values sent back from the network |
+| ERC20Example                 | Confidential ERC20 - deploy and transfer encrypted amount of funds                                                                            |
+| NFTExample                   | Confidential NFT example - saving encrypted data                                                                                              |
+| ConfidentialAuction          | Confidential auction - encrypted bid amount                                                                                                   |
+| ConfidentialIdentityRegistry | Confidential Identity Registry - Encrypted identity data                                                                                      |
+| Precompile                   | Thorough examples of the precompile functionality                                                                                             |
 
-Run the `native_transfer.py` script, it will transfer a small amount of coins to a random address - demonstrating standard native transfer.
-
-During that process, it will create a new EOA (you will see your public address in the script output), and an `ACCOUNT_PRIVATE_KEY` will be saved into the `.env` file.
-
-It will of course fail on first attempt of execution since the newly created account doesn't have any funds. Refer to the faucet section above to transfer funds into that account and try again.
-
-**2. Generate Encryption Key**
-
-Run the `onboard_account.py` script, it will request an AES encryption key from the network, that is specific for the account and it will save the AES key into the `.env` file,
-That value is mandatory for every action that involves computation using COTI v2 on-chain.
-
-**3. Execute**
-
-Now you can run any other example, e.g. `precompiles_examples.py` (see above for complete list).
-We recommend that you get familiar with `data_on_chain.py`, it best descibes the basics of keeping data encrypted on-chain and doing simple actions (encryption, decryption, computation, verification...)
-
-In order to follow the transactions sent to the node, use the `web_socket.py` script to be notified and see their on-chain details.
-
-Pending enhancements:
-
-- Versioned pypi library (seperating the library repository from the examples repository)
-- Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more.
-
-#### To report issues, please create a [github issue](https://github.com/coti-io/coti-sdk-python/issues)
-
-## Typescript SDK ([coti-sdk-typescript](https://github.com/coti-io/coti-sdk-typescript))
-### Usage
-
-The examples described above reside in [coti-sdk-typescript/src/examples](https://github.com/coti-io/coti-sdk-typescript/tree/main/src/examples), the solidity contracts are in the [confidentiality-contracts](https://github.com/coti-io/confidentiality-contracts) repo which is imported as a git submodule.
-
-1. Install dependencies
-
-   ```
-   yarn
-   ```
-
-3. Run ERC20 test
-
-   ```
-   yarn erc20
-   ```
-
-> [!NOTE]  
-> Runnning tests will create an account automatically. The account will be saved to the `.env` file and will need to be funded. Use the COTI faucet to request devnet/testnet funds.
-
-#### Pending enhancements
-
-- Publishing SDK via npmjs
-- Extending examples such as confidential ERC20 minting, confidential NFT (deployment and actions) and more.
-
-#### To report issues, please create a [github issue](https://github.com/coti-io/coti-sdk-typescript/issues)
-
-## Hardhat ([confidential-contracts](https://github.com/coti-io/confidentiality-contracts))
-### Usage
+## Usage
 
 1. Install dependencies
 
@@ -153,11 +110,7 @@ The examples described above reside in [coti-sdk-typescript/src/examples](https:
 > [!NOTE]  
 > Runnning tests will create an account automatically. The account will be saved to the `.env` file and will need to be funded. Use the COTI faucet to request devnet/testnet funds.
 
-### Add contracts to your project
-
-This section provides instructions on how to add the confidentiality contracts to your project using popular development tools like Forge and Hardhat.
-
-### Hardhat
+### Add contracts to your Hardhat project
 
 ```shell
 yarn add git@github.com:coti-io/confidentiality-contracts.git
