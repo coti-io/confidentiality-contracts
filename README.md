@@ -48,11 +48,11 @@ The following contracts are available in each of the packages:
 
 The `confidential-contracts` project is comprised of three main components:
 
-1. **Reference libraries** (located in `contracts/lib`): containts the `MpcCore` and `MpcInterface` libraries referenced by all other SDKs. For a full description of the libraries visit the [libraries readme](contracts/lib/lib_readme.md).
+1. **Reference libraries** (located in `contracts/lib`): containts the `MpcCore` and `MpcInterface` libraries referenced by all other SDKs. These libraries contain instructions for methods which the gcEVM handles as bytecode. For a full description of the libraries visit the [libraries readme](contracts/lib/lib_readme.md).
 
-2. **gcEVM Precompiles** (located in `contracts/examples/precompiles`): These are precompiles specific to the COTI protocol and are also referenced by all other SDKs. For a full description of these precompiles visit the [precompiles readme](contracts/examples/precompiles/precompiles_readme.md).
+2. **gcEVM Precompiles** (located in `contracts/examples/precompiles`): These are a set of examples that make use of the reference libraries mentioned above. For a full description of these precompiles visit the [precompiles readme](contracts/examples/precompiles/precompiles_readme.md).
 
-3. **Example contracts** (located in `contracts/examples`): the examples folder contain Solidity contracts that perform various various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, Auction, and Identity management. It contains smart contracts that implement confidentiality features using the COTI V2 protocol.
+3. **Example contracts** (located in `contracts/examples`): the examples folder contain Solidity contracts that perform various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, Auction, and Identity management. It contains smart contracts that implement confidentiality features using the COTI V2 protocol.
 
 The following example contracts are available for Hardhat Runtime Environment for deployment and execution:
 
