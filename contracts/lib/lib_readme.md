@@ -2,10 +2,17 @@
 
 This Solidity library, `MpcCore`, provides core functionalities for secure multi-party computation (MPC) using the COTI protocol. Below is an overview of its components and functions:
 
+## Legend
+
+- it = input text
+- gc = garbled text
+- ct = cipher text
+
 ## Types
 The library defines several custom types using `uint256` as the base type:
 - `gtBool`, `gtUint8`, `gtUint16`, `gtUint32`, `gtUint64`
 - `ctBool`, `ctUint8`, `ctUint16`, `ctUint32`, `ctUint64`
+- `lenghts`, use to differentiate the length
 
 ## Structures
 The library defines multiple structures for handling encrypted and signed data:
@@ -24,7 +31,7 @@ These functions combine enum values into bytes for efficient storage and transfe
 - `combineEnumsToBytes4(MPC_TYPE mpcType1, MPC_TYPE mpcType2, MPC_TYPE mpcType3, ARGS argsType)`: Combines three `MPC_TYPE` values and an `ARGS` value into a `bytes4` value.
 
 ### Key Management Functions
-- `getUserKey(bytes calldata signedEK, bytes calldata signature)`: Retrieves the user's encrypted key using the provided signed encryption key and signature.
+- `getUserKey(bytes calldata signedEK, bytes calldata signature)`: Retrieves the user's AES encryption key in encrypted format, by using the provided public key to encrypt it - signature is used to validate the account ownership.
 
 This library is designed to be used as part of a secure multi-party computation framework, facilitating the handling and combination of encrypted and signed data types.
 
@@ -35,9 +42,9 @@ This Solidity interface, `ExtendedOperations`, defines a set of functions for pe
 ## Functions
 
 ### Onboarding and Offboarding Functions
-- `OnBoard(bytes1 metaData, uint256 ct)`: Onboards a new participant or data with the given metadata and ciphertext.
-- `OffBoard(bytes1 metaData, uint256 ct)`: Offboards a participant or data with the given metadata and ciphertext.
-- `OffBoardToUser(bytes1 metaData, uint256 ct, bytes calldata addr)`: Offboards data to a user-specified address.
+- `OnBoard(bytes1 metaData, uint256 ct)`: Onboards a new EOA. Metadata is used to define what is the data type being used (8 , 16, 32 , 64). This function is not directly called by others in MpcCore.
+- `OffBoard(bytes1 metaData, uint256 ct)`: Offboards an EOA. Metadata is used to define what is the data type being used (8 , 16, 32 , 64). This function is not directly called by others in MpcCore.
+- `OffBoardToUser(bytes1 metaData, uint256 ct, bytes calldata addr)`: Offboards an EOA to a user-specified address. Metadata is used to define what is the data type being used (8 , 16, 32 , 64). This function is not directly called by others in MpcCore.
 - `SetPublic(bytes1 metaData, uint256 ct)`: Sets the data as public with the given metadata and ciphertext.
 
 ### Randomness Functions
