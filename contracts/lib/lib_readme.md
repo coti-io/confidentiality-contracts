@@ -4,9 +4,10 @@ This Solidity library, `MpcCore`, provides core functionalities for secure multi
 
 ## Legend
 
-- it = input text
+- it = input text. This structure contains text that was encrypted by user and provided a signature to authenticate it.
 - gc = garbled text
 - ct = cipher text
+- ut = user text. This structure  contains 2 types of cipher texts: one by the network and one by the user key. Convenient for operations that require some times to decipher one or another.
 
 ## Types
 The library defines several custom types using `uint256` as the base type:
@@ -16,8 +17,8 @@ The library defines several custom types using `uint256` as the base type:
 
 ## Structures
 The library defines multiple structures for handling encrypted and signed data:
-- `itBool`, `itUint8`, `itUint16`, `itUint32`, `itUint64`: Each structure contains a ciphertext (`ctBool`, `ctUint8`, etc.) and a signature (`bytes`).
-- `utBool`, `utUint8`, `utUint16`, `utUint32`, `utUint64`: Each structure contains two ciphertexts (`ctBool`, `ctUint8`, etc.) for user and regular data.
+- `itBool`, `itUint8`, `itUint16`, `itUint32`, `itUint64`: Each structure contains a inputtext (`ctBool`, `ctUint8`, etc.) and a signature (`bytes`).
+- `utBool`, `utUint8`, `utUint16`, `utUint32`, `utUint64`: Each structure contains two usertext (`ctBool`, `ctUint8`, etc.) for user and regular data.
 
 ## Enums
 - `MPC_TYPE`: Enum to represent different MPC data types (`SBOOL_T`, `SUINT8_T`, `SUINT16_T`, `SUINT32_T`, `SUINT64_T`).
