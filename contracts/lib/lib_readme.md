@@ -73,4 +73,8 @@ This Solidity interface, `ExtendedOperations`, defines a set of functions for pe
 - `Le(bytes3 metaData, uint256 lhs, uint256 rhs)`: Checks if the first value is less than or equal to the second.
 - `Lt(bytes3 metaData, uint256 lhs, uint256 rhs)`: Checks if the first value is less than the second.
 
+### Validation and Transfer Functions
+- `ValidateCiphertext(bytes calldata ciphertext, bytes calldata signature)`: Validates the given ciphertext and signature.
+- `TransferWithAllowance(address from, address to, uint256 amount, bytes calldata signature)`: Transfers the specified amount from one address to another with the provided signature.
+
 This interface is designed to be implemented by a contract that performs secure multi-party computation, providing essential operations such as arithmetic, bitwise, and comparison functions, as well as onboarding and offboarding participants or data.
