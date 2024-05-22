@@ -9,7 +9,7 @@ const config: HardhatUserConfig = {
   networks: {
     // hardhat: {},
     devnet: {
-      url: "https://devnet.coti.io",
+      url: "https://devnet.coti.io/rpc",
       chainId: 13068200,
     },
   },
