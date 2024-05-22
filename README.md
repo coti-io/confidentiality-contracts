@@ -12,7 +12,7 @@ The contracts are of Solidity and can be compiled and deployed using popular dev
 
 Interact with the contract using any of the following:
 
-1. [Python SDK](https://github.com/coti-io/coti-sdk-python)
+1. [Python SDK](https://github.com/coti-io/coti-sdk-python) | [Python SDK Examples](https://github.com/coti-io/coti-sdk-python-examples)
 2. [Typescript SDK](https://github.com/coti-io/coti-sdk-typescript) | [Typescript SDK Examples](https://github.com/coti-io/coti-sdk-typescript-examples)
 3. [Hardhat Dev Environment](https://github.com/coti-io/confidentiality-contracts)
 
