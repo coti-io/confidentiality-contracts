@@ -8,6 +8,7 @@
     "test-erc20": "yarn test ./test-hardhat/confidential-erc20.test.ts",
     "test-auction": "yarn test ./test-hardhat/confidential-auction.test.ts",
     "test-identity": "yarn test ./test-hardhat/confidential-identity.test.ts",
+    "test-precompiles": "yarn test ./test-hardhat/precompile.test.ts",
     "test": "yarn hardhat test"
   },
   "devDependencies": {
