@@ -1,4 +1,4 @@
-# COTI V2 Confidential Smart Contracts | SDKs and Examples
+# COTI V2 Confidentiality Preserving L2 | SDKs and Examples
 
 All repositories specified below contain smart contracts that implement confidentiality features using the COTI V2 protocol.
 The contracts provide examples for various use cases, such as Non-Fungible Tokens (NFTs), ERC20 tokens, Auction, and Identity management.
@@ -8,7 +8,7 @@ The contracts are of Solidity and can be compiled and deployed using popular dev
 
 #### Important Links:
 
-[Docs](https://docs.coti.io) | [Devnet Explorer](https://explorer-devnet.coti.io) | [Faucet](https://faucet.coti.io)
+[Docs](https://docs.coti.io) | [Devnet Explorer](https://explorer-devnet.coti.io) | [Discord](https://discord.gg/cuCykh8P4m) | [Faucet](https://faucet.coti.io)
 
 Interact with the contract using any of the following:
 
