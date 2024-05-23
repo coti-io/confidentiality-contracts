@@ -3,7 +3,7 @@ import { expect } from "chai"
 import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 
-export const deploymentInfo = { name: "Soda", symbol: "SOD", decimals: 5, initialSupply: 500000000 } as const
+export const deploymentInfo = { name: "My Confidential Token", symbol: "CTOK", decimals: 5, initialSupply: 500000000 } as const
 const gasLimit = 12000000
 
 async function deploy() {
