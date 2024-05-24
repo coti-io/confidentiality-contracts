@@ -67,25 +67,128 @@ The following example contracts are available for Hardhat Runtime Environment fo
 
 ## Usage
 
-1. Install dependencies
+### ERC20Example
 
-   ```
-   yarn
-   ```
+The following process will help you run the [**ERC20Example.sol**](https://github.com/coti-io/confidentiality-contracts/blob/main/contracts/examples/ERC20Example.sol) example from the [**COTI confidentiality-contracts**](https://github.com/coti-io/confidentiality-contracts) project. The contract defines a custom ERC20 token called `ERC20Example` that extends the functionality of the ConfidentialERC20 token. Additionally it will:
 
-3. Build and compile contracts
+* Create a EOA (Externally Owned Account)
+* Validate minimum balance
 
-   ```
-   yarn build
-   ```
+The contract is compiled and deployed with Hardhat using the [`confidential-erc20.test.ts`](https://github.com/coti-io/confidentiality-contracts/blob/main/test-hardhat/confidential-erc20.test.ts) test suite contained in the [`test-hardhat`](https://github.com/coti-io/confidentiality-contracts/tree/main/test-hardhat) directory of the project.
 
-5. Run tests
+> [!NOTE]  
+> Ensure your environment meets all the pre-requisites. Visit the [pre-requisites section of the readme](https://github.com/coti-io/confidentiality-contracts/blob/main/README.md).
 
-   ```
-   yarn test
-   ```
+1.  Clone the confidentiality-contracts  repo
 
-7. Run specific tests
+    ```bash
+    git clone git@github.com:coti-io/confidentiality-contracts.git
+    ```
+
+
+2.  Change directory to the newly create one
+
+    ```bash
+    cd confidentiality-contracts
+    ```
+
+
+3.  Install dependencies
+
+    ```bash
+    yarn
+    ```
+
+
+4.  Build and compile contracts
+
+    ```bash
+    yarn build
+    ```
+
+
+5.  Run the `test-erc20` test suite
+
+    ```bash
+    yarn test-erc20
+    ```
+
+    \
+    Running this test will automatically create an account and a key/value pair with name: `SIGNING_KEYS` (visible in the .env file). The script will output something like this:\
+
+
+    ```bash
+    yarn run v1.22.22
+
+      Confidential ERC20
+        1) "before all" hook in "Confidential ERC20"
+
+      0 passing (39ms)
+      1 failing
+
+      1) Confidential ERC20
+           "before all" hook in "Confidential ERC20":
+         Error: Created new random account 0x17EDB982c3569D29EbaF407F72aDD05722d5f179.
+         Please use faucet to fund it.
+    ```
+
+    \
+    It is normal to receive the exception `Error: Created new random account [...] Please use faucet to fund it.` on the first run. This will be resolved once the account is funded. \
+
+6. Head to the faucet at [**https://faucet.coti.io**](https://faucet.coti.io) to get devnet funds. \
+   Send the following message to the BOT using your newly created account, visible in the last part of the response.\
+   \
+   `devnet <account address>`\
+   \
+   The bot will reply with the message:\
+   \
+   `<username> faucet transferred 5 COTIv2 (devnet)` \
+   &#x20;
+7.  Run the `test-erc20` test suite once more.
+
+    ```bash
+    yarn test-erc20
+    ```
+
+    \
+    The script output will look like this:\
+
+
+    ```bash
+    Confidential ERC20
+    ************* Onboarding user  0x17EDB982c3569D29EbaF407F72aDD05722d5f179  *************
+    ************* Onboarding user  0xe1E7315F6970F353661fc84FFd9238133cED3677  *************
+    ************* Onboarded! created user key and saved into .env file *************
+    ************* Onboarded! created user key and saved into .env file *************
+        Deployment
+          ✔ Deployed address should not be undefined
+          ✔ Owner initial balance (123ms)
+          ✔ Function 'name' should be correct (130ms)
+          ✔ Function 'symbol' should be correct (123ms)
+          ✔ Function 'decimals' should be correct (119ms)
+          ✔ Function 'totalSupply' should be correct (117ms)
+        Transfer 5
+          ✔ Transfer - clear (9469ms)
+          ✔ Transfer - Confidential (5260ms)
+          ✔ TransferFrom - clear without giving allowance should fail (9905ms)
+          ✔ TransferFrom - clear (9770ms)
+          ✔ TransferFrom - Confidential (10265ms)
+          ✔ Approve/Allowance - Confidential (10255ms)
+
+      12 passing (1m)
+
+    ✨  Done in 69.69s.
+    ```
+
+
+Running the test suite does the following:
+
+* **Deploys the `ERC20Example` contract**: Sets up the token with specific details (name, symbol, initial supply).
+* **Tests the deployment**: Verifies the contract address, initial balance, and token details (name, symbol, decimals, total supply).
+* **Tests transfers**: Both clear and confidential transfers, including `transferFrom` functionality with and without prior allowance.
+* **Tests approvals and allowances**: Ensures that the contract correctly handles approvals and allowances, both clear and confidential.
+
+8. You may also run specific tests
 
    ```
    yarn test-nft
@@ -108,9 +211,6 @@ The following example contracts are available for Hardhat Runtime Environment fo
    ```
    yarn test-identity
    ```
-
-> [!NOTE]  
-> Runnning tests will create an account automatically. The account will be saved to the `.env` file and will need to be funded. Use the COTI faucet to request devnet/testnet funds.
 
 ### Add contracts to your Hardhat project
 
