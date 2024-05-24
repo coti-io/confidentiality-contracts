@@ -133,7 +133,7 @@ The contract is compiled and deployed with Hardhat using the [`confidential-erc2
     ```
 
     \
-    It is normal to receive the exception `Error: Created new random account [...] Please use faucet to fund it.` on the first run. This will be resolved once the account is funded. \
+    It is normal to receive the exception `Error: Created new random account [...] Please use faucet to fund it.` on the first run. This will be resolved once the account is funded.  
 
 6. Head to the faucet at [**https://faucet.coti.io**](https://faucet.coti.io) to get devnet funds. \
    Send the following message to the BOT using your newly created account, visible in the last part of the response.\
@@ -151,7 +151,7 @@ The contract is compiled and deployed with Hardhat using the [`confidential-erc2
     ```
 
     \
-    The script output will look like this:\
+    The script output will look like this:  
 
 
     ```bash
