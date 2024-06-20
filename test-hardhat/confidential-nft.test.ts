@@ -80,58 +80,6 @@ describe("Confidential NFT", function () {
     })
   })
 
-  describe("Transfers", function () {
-    it("Should transfer token to other account", async function () {
-      const { contract, owner, otherAccount } = deployment
-
-      const tokenId = await deployment.contract.totalSupply()
-      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-
-      await (await contract.connect(owner.wallet).approve(otherAccount.wallet.address, tokenId, { gasLimit })).wait()
-
-      await (
-        await contract
-          .connect(owner.wallet)
-          .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      ).wait()
-      expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.wallet.address)
-    })
-
-    it("Should fail transfer token to other account for when no allowance", async function () {
-      const { contract, owner, otherAccount } = deployment
-
-      const tokenId = await deployment.contract.totalSupply()
-      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-
-      const tx = await contract
-        .connect(otherAccount.wallet)
-        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
-    })
-
-    it("Should fail to transfer from non-owner", async function () {
-      const { contract, owner, otherAccount } = deployment
-
-      const tokenId = await deployment.contract.totalSupply()
-      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-
-      const tx = await contract
-        .connect(otherAccount.wallet)
-        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
-    })
-  })
-
   describe("URI", function () {
     it("should return 0 for token URI if not set", async function () {
       const { contract, owner } = deployment
@@ -191,6 +139,85 @@ describe("Confidential NFT", function () {
 
       const ctRetrievedUri = await contract.tokenURI(tokenId)
       expect(decryptValue(ctRetrievedUri, owner.userKey)).to.equal(uri)
+    })
+  })
+
+  describe("Transfers", function () {
+    describe("Successful transfer", function () {
+      const tokenId = 0
+      const tokenURI = 11
+
+      before(async function () {
+        const { contract, owner, otherAccount } = deployment
+
+        await (await contract.connect(owner.wallet).approve(otherAccount.wallet.address, tokenId, { gasLimit })).wait()
+
+        await (
+          await contract
+            .connect(owner.wallet)
+            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+        ).wait()
+      })
+
+      it("Should transfer token to other account", async function () {
+        const { contract, otherAccount } = deployment
+  
+        expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.wallet.address)
+      })
+
+      it("Should allow the new owner to decrypt the token URI", async function () {
+        const { contract, otherAccount } = deployment
+
+        const encryptedTokenURI = await contract.tokenURI(tokenId)
+
+        const decryptedTokenURI = otherAccount.decryptValue(encryptedTokenURI)
+
+        expect(decryptedTokenURI).to.equal(tokenURI)
+      })
+      
+      it("Should not allow the previous owner to decrypt the token URI", async function () {
+        const { contract, owner } = deployment
+
+        const encryptedTokenURI = await contract.tokenURI(tokenId)
+
+        const decryptedTokenURI = owner.decryptValue(encryptedTokenURI)
+
+        expect(decryptedTokenURI).to.not.equal(tokenURI)
+      })
+    })
+
+    it("Should fail transfer token to other account for when no allowance", async function () {
+      const { contract, owner, otherAccount } = deployment
+
+      const tokenId = await deployment.contract.totalSupply()
+      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
+
+      const tx = await contract
+        .connect(otherAccount.wallet)
+        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+      let reverted = true
+      try {
+        await tx.wait()
+        reverted = false
+      } catch (error) {}
+      expect(reverted).to.eq(true, "Should have reverted")
+    })
+
+    it("Should fail to transfer from non-owner", async function () {
+      const { contract, owner, otherAccount } = deployment
+
+      const tokenId = await deployment.contract.totalSupply()
+      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
+
+      const tx = await contract
+        .connect(otherAccount.wallet)
+        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+      let reverted = true
+      try {
+        await tx.wait()
+        reverted = false
+      } catch (error) {}
+      expect(reverted).to.eq(true, "Should have reverted")
     })
   })
 })

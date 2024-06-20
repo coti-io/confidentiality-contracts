@@ -59,7 +59,7 @@ abstract contract ConfidentialERC721 is
     function balanceOf(
         address owner
     ) public view virtual override returns (ctUint64) {
-        if (owner == address(0) && owner != msg.sender) {
+        if (owner == address(0) || owner != msg.sender) {
             revert ERC721InvalidOwner(owner);
         }
         return _balances[msg.sender].userCiphertext;
