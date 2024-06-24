@@ -82,7 +82,7 @@ The contract is compiled and deployed with Hardhat using the [`confidential-erc2
 1.  Clone the confidentiality-contracts  repo
 
     ```bash
-    git clone git@github.com:coti-io/confidentiality-contracts.git
+    git clone https://github.com/coti-io/confidentiality-contracts.git
     ```
 
 
