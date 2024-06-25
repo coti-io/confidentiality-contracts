@@ -27,7 +27,7 @@ abstract contract ConfidentialERC721 is
 
     mapping(uint256 tokenId => address) private _owners;
 
-    mapping(address owner => utUint64) private _balances;
+    mapping(address owner => uint256) private _balances;
 
     mapping(uint256 tokenId => address) private _tokenApprovals;
 
@@ -58,11 +58,8 @@ abstract contract ConfidentialERC721 is
      */
     function balanceOf(
         address owner
-    ) public view virtual override returns (ctUint64) {
-        if (owner == address(0) || owner != msg.sender) {
-            revert ERC721InvalidOwner(owner);
-        }
-        return _balances[msg.sender].userCiphertext;
+    ) public view virtual override returns (uint256) {
+        return _balances[owner];
     }
 
     /**
@@ -247,12 +244,7 @@ abstract contract ConfidentialERC721 is
             _checkAuthorized(from, auth, tokenId);
         }
 
-        (gtUint64 fromBalance, gtUint64 toBalance) = _getBalances(from, to);
-        (gtUint64 newFromBalance, gtUint64 newToBalance, ) = MpcCore.transfer(
-            fromBalance,
-            toBalance,
-            MpcCore.setPublic64(1)
-        );
+        (uint256 fromBalance, uint256 toBalance) = _getBalances(from, to);
 
         // Execute the update
         if (from != address(0)) {
@@ -260,16 +252,13 @@ abstract contract ConfidentialERC721 is
             _approve(address(0), tokenId, address(0), false);
 
             unchecked {
-                _balances[from] = MpcCore.offBoardCombined(
-                    newFromBalance,
-                    from
-                );
+                _balances[from] = fromBalance - 1;
             }
         }
 
         if (to != address(0)) {
             unchecked {
-                _balances[to] = MpcCore.offBoardCombined(newToBalance, to);
+                _balances[to] = toBalance + 1;
             }
         }
 
@@ -284,16 +273,12 @@ abstract contract ConfidentialERC721 is
     function _getBalances(
         address _from,
         address _to
-    ) private returns (gtUint64, gtUint64) {
+    ) private view returns (uint256, uint256) {
         return (_getBalance(_from), _getBalance(_to));
     }
 
-    function _getBalance(address addr) private returns (gtUint64) {
-        ctUint64 balance = _balances[addr].ciphertext;
-        return
-            ctUint64.unwrap(balance) == 0
-                ? MpcCore.setPublic64(0)
-                : MpcCore.onBoard(balance);
+    function _getBalance(address addr) private view returns (uint256) {
+        return _balances[addr];
     }
 
     /**
@@ -315,11 +300,8 @@ abstract contract ConfidentialERC721 is
         if (isMinted(tokenId)) {
             revert ERC721AlreadyMintedToken(tokenId);
         }
-        gtUint64 newBalance = MpcCore.add(
-            _getBalance(to),
-            MpcCore.setPublic64(1)
-        );
-        _balances[to] = MpcCore.offBoardCombined(newBalance, to);
+        uint256 newBalance = _getBalance(to) + 1;
+        _balances[to] = newBalance;
 
         _owners[tokenId] = to;
 
