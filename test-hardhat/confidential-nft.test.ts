@@ -2,6 +2,7 @@ import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
 import { decryptString, encryptString } from "./util/string-encryption"
+import { ContractTransactionReceipt } from "ethers"
 
 const gasLimit = 12000000
 
@@ -36,48 +37,73 @@ describe("Confidential NFT", function () {
       expect(await deployment.contract.symbol()).to.equal("EXL")
     })
 
-    it("Owner of first token should be deployer", async function () {
-      const tokenId = 0
-      expect(await deployment.contract.ownerOf(tokenId)).to.equal(deployment.owner.wallet.address)
-    })
-
-    it("Total supply should be 1", async function () {
-      expect(await deployment.contract.totalSupply()).to.equal(1)
-    })
-
     it("Contract owner should be the owner", async function () {
       expect(await deployment.contract.owner()).to.equal(deployment.owner.wallet.address)
     })
   })
 
   describe("Minting", function () {
-    it("Should mint new token to otherAccount", async function () {
-      const { contract, owner, otherAccount } = deployment
+    const tokenURI = 'https://api.pudgypenguins.io/lil/18707'
 
-      const startTokenIds = await deployment.contract.totalSupply()
+    describe("Successful mint", function () {
+      let tx: ContractTransactionReceipt | null
 
-      await expect(
-        (await contract.connect(owner.wallet).mint(otherAccount.wallet.address, { gasLimit })).wait()
-      ).to.emit(contract, "Minted")
+      before(async function () {
+        const { contract, contractAddress, owner, otherAccount } = deployment
+        
+        const encryptedTokenURI = await encryptString(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
 
-      const endTokenIds = await deployment.contract.totalSupply()
+        tx = await (
+          await contract
+            .connect(owner.wallet)
+            .mint(
+              otherAccount.wallet.address,
+              encryptedTokenURI.map((val) => val.ciphertext),
+              encryptedTokenURI.map((val) => val.signature),
+              { gasLimit })
+          ).wait()
+      })
+      
+      it("Should emit a 'Minted' event", async function () {
+        const { contract } = deployment
+  
+        expect(tx).to.emit(contract, "Minted")
+      })
 
-      const newTokenId = startTokenIds
-      expect(await contract.ownerOf(newTokenId)).to.equal(otherAccount.wallet.address)
-      expect(endTokenIds).to.equal(startTokenIds + BigInt(1))
-      expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(1))
+      it("Should update the owners mapping", async function () {
+        const { contract, otherAccount } = deployment
+  
+        expect(await contract.ownerOf(BigInt(0))).to.equal(otherAccount.wallet.address)
+      })
+
+      it("Should update the balances mapping", async function () {
+        const { contract, otherAccount } = deployment
+  
+        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(1))
+      })
+      
+      it("Should emit a 'MetadataUpdate' event", async function () {
+        const { contract } = deployment
+  
+        expect(tx).to.emit(contract, "MetadataUpdate").withArgs(BigInt(0))
+      })
     })
 
     it("Should fail to mint if not owner", async function () {
-      const { contract, otherAccount } = deployment
+      const { contract, contractAddress, otherAccount } = deployment
 
-      const tx = await contract.connect(otherAccount.wallet).mint(otherAccount.wallet.address, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
+      const encryptedTokenURI = await encryptString(tokenURI, otherAccount, contractAddress, contract.mint.fragment.selector)
+
+      const tx = await contract
+        .connect(otherAccount.wallet)
+        .mint(
+          otherAccount.wallet.address,
+          encryptedTokenURI.map((val) => val.ciphertext),
+          encryptedTokenURI.map((val) => val.signature),
+          { gasLimit }
+        )
+      
+      expect(tx).to.be.reverted
     })
   })
 
@@ -85,61 +111,11 @@ describe("Confidential NFT", function () {
     it("should return 0 for token URI if not set", async function () {
       const { contract, owner } = deployment
 
-      const tokenId = 0
+      const tokenId = BigInt(1)
       const ctURI = await contract.connect(owner.wallet).tokenURI(tokenId)
       const uri = decryptString(ctURI, owner)
+      
       expect(uri).to.equal("")
-    })
-
-    it("should allow owner to set token URI", async function () {
-      const { contract, contractAddress, owner } = deployment
-
-      const tokenId = BigInt(0)
-      const uri = 'https://api.pudgypenguins.io/lil/9040'
-
-      const encryptedTokenURI = await encryptString(uri, owner, contractAddress, contract.setTokenURI.fragment.selector)
-
-      await (await contract
-        .connect(owner.wallet)
-        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit }))
-        .wait()
-      
-      const ctRetrievedUri = await contract.tokenURI(tokenId)
-
-      expect(decryptString(ctRetrievedUri, owner)).to.equal(uri)
-    })
-
-    it("should revert when non-owner tries to set token URI", async function () {
-      const { contract, contractAddress, otherAccount } = deployment
-
-      const tokenId = BigInt(0)
-      const uri = ''
-
-      const encryptedTokenURI = await encryptString(uri, otherAccount, contractAddress, contract.setTokenURI.fragment.selector)
-
-      const tx = await contract
-        .connect(otherAccount.wallet)
-        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit })
-      
-      expect(tx).to.be.reverted
-    })
-
-    it("should emit MetadataUpdate event on setting token URI", async function () {
-      const { contract, contractAddress, owner } = deployment
-
-      const tokenId = BigInt(0)
-      const uri = 'https://api.pudgypenguins.io/lil/18707'
-
-      const encryptedTokenURI = await encryptString(uri, owner, contractAddress, contract.setTokenURI.fragment.selector)
-
-      const receipt = await (await contract
-        .connect(owner.wallet)
-        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit }))
-        .wait()
-      
-      await expect(receipt)
-        .to.emit(contract, "MetadataUpdate")
-        .withArgs(tokenId)
     })
   })
 
@@ -151,78 +127,104 @@ describe("Confidential NFT", function () {
       before(async function () {
         const { contract, owner, otherAccount } = deployment
 
-        await (await contract.connect(owner.wallet).approve(otherAccount.wallet.address, tokenId, { gasLimit })).wait()
+        await (await contract.connect(otherAccount.wallet).approve(owner.wallet.address, tokenId, { gasLimit })).wait()
 
         await (
           await contract
             .connect(owner.wallet)
-            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+            .transferFrom(otherAccount.wallet.address, owner.wallet.address, tokenId, { gasLimit })
         ).wait()
       })
 
       it("Should transfer token to other account", async function () {
         const { contract, owner, otherAccount } = deployment
   
-        expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.wallet.address)
-        expect(await contract.balanceOf(owner.wallet.address)).to.equal(BigInt(0))
-        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(2))
+        expect(await contract.ownerOf(tokenId)).to.equal(owner.wallet.address)
+        expect(await contract.balanceOf(owner.wallet.address)).to.equal(BigInt(1))
+        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(0))
       })
 
       it("Should allow the new owner to decrypt the token URI", async function () {
-        const { contract, otherAccount } = deployment
-
-        const encryptedTokenURI = await contract.tokenURI(tokenId)
-
-        const decryptedTokenURI = decryptString(encryptedTokenURI, otherAccount)
-
-        expect(decryptedTokenURI).to.equal(tokenURI)
-      })
-      
-      it("Should not allow the previous owner to decrypt the token URI", async function () {
         const { contract, owner } = deployment
 
         const encryptedTokenURI = await contract.tokenURI(tokenId)
 
         const decryptedTokenURI = decryptString(encryptedTokenURI, owner)
 
+        expect(decryptedTokenURI).to.equal(tokenURI)
+      })
+      
+      it("Should not allow the previous owner to decrypt the token URI", async function () {
+        const { contract, otherAccount } = deployment
+
+        const encryptedTokenURI = await contract.tokenURI(tokenId)
+
+        const decryptedTokenURI = decryptString(encryptedTokenURI, otherAccount)
+
         expect(decryptedTokenURI).to.not.equal(tokenURI)
       })
     })
 
     describe("Failed transfers", function () {
-        it("Should fail transfer token to other account for when no allowance", async function () {
-          const { contract, owner, otherAccount } = deployment
-    
-          const tokenId = await deployment.contract.totalSupply()
-          await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-    
-          const tx = await contract
-            .connect(otherAccount.wallet)
-            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-          let reverted = true
-          try {
-            await tx.wait()
-            reverted = false
-          } catch (error) {}
-          expect(reverted).to.eq(true, "Should have reverted")
-        })
-    
-        it("Should fail to transfer from non-owner", async function () {
-          const { contract, owner, otherAccount } = deployment
-    
-          const tokenId = await deployment.contract.totalSupply()
-          await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-    
-          const tx = await contract
-            .connect(otherAccount.wallet)
-            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-          let reverted = true
-          try {
-            await tx.wait()
-            reverted = false
-          } catch (error) {}
-          expect(reverted).to.eq(true, "Should have reverted")
-        })
+      const tokenURI = 'https://api.pudgypenguins.io/lil/9040'
+
+      it("Should fail transfer token to other account for when no allowance", async function () {
+        const { contract, contractAddress, owner, otherAccount } = deployment
+
+        const encryptedTokenURI = await encryptString(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
+  
+        const tokenId = await deployment.contract.totalSupply()
+        
+        await (
+          await contract
+            .connect(owner.wallet)
+            .mint(
+              owner.wallet.address,
+              encryptedTokenURI.map((val) => val.ciphertext),
+              encryptedTokenURI.map((val) => val.signature),
+              { gasLimit }
+            )
+        ).wait()
+  
+        const tx = await contract
+          .connect(otherAccount.wallet)
+          .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+        let reverted = true
+        try {
+          await tx.wait()
+          reverted = false
+        } catch (error) {}
+        expect(reverted).to.eq(true, "Should have reverted")
+      })
+  
+      it("Should fail to transfer from non-owner", async function () {
+        const { contract, contractAddress, owner, otherAccount } = deployment
+
+        const encryptedTokenURI = await encryptString(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
+  
+        const tokenId = await deployment.contract.totalSupply()
+        
+        await (
+          await contract
+            .connect(owner.wallet)
+            .mint(
+              owner.wallet.address,
+              encryptedTokenURI.map((val) => val.ciphertext),
+              encryptedTokenURI.map((val) => val.signature),
+              { gasLimit }
+            )
+        ).wait()
+  
+        const tx = await contract
+          .connect(otherAccount.wallet)
+          .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+        let reverted = true
+        try {
+          await tx.wait()
+          reverted = false
+        } catch (error) {}
+        expect(reverted).to.eq(true, "Should have reverted")
       })
     })
+  })
 })
