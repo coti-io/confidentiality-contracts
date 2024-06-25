@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
+import { decryptString, encryptString } from "./util/string-encryption"
 
 const gasLimit = 12000000
 
@@ -86,66 +86,66 @@ describe("Confidential NFT", function () {
 
       const tokenId = 0
       const ctURI = await contract.connect(owner.wallet).tokenURI(tokenId)
-      const uri = decryptValue(ctURI, owner.userKey)
-      expect(uri).to.equal(0)
+      const uri = decryptString(ctURI, owner)
+      expect(uri).to.equal("")
     })
 
     it("should allow owner to set token URI", async function () {
       const { contract, contractAddress, owner } = deployment
 
-      const tokenId = 0
-      const uri = 11
+      const tokenId = BigInt(0)
+      const uri = 'https://api.pudgypenguins.io/lil/9040'
 
-      const func = contract.connect(owner.wallet).setTokenURI
-      const selector = func.fragment.selector
-      let { ctInt, signature } = await prepareIT(BigInt(uri), owner, contractAddress, selector)
-      await (await func(tokenId, ctInt, signature, { gasLimit })).wait()
+      const encryptedTokenURI = await encryptString(uri, owner, contractAddress, contract.setTokenURI.fragment.selector)
 
+      await (await contract
+        .connect(owner.wallet)
+        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit }))
+        .wait()
+      
       const ctRetrievedUri = await contract.tokenURI(tokenId)
-      expect(decryptValue(ctRetrievedUri, owner.userKey)).to.equal(uri)
+
+      expect(decryptString(ctRetrievedUri, owner)).to.equal(uri)
     })
 
     it("should revert when non-owner tries to set token URI", async function () {
       const { contract, contractAddress, otherAccount } = deployment
 
-      const tokenId = 0
-      const uri = 22
+      const tokenId = BigInt(0)
+      const uri = ''
 
-      const func = contract.connect(otherAccount.wallet).setTokenURI
-      const selector = func.fragment.selector
-      let { ctInt, signature } = await prepareIT(BigInt(uri), otherAccount, contractAddress, selector)
+      const encryptedTokenURI = await encryptString(uri, otherAccount, contractAddress, contract.setTokenURI.fragment.selector)
 
-      const tx = await func(tokenId, ctInt, signature, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
+      const tx = await contract
+        .connect(otherAccount.wallet)
+        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit })
+      
+      expect(tx).to.be.reverted
     })
 
     it("should emit MetadataUpdate event on setting token URI", async function () {
       const { contract, contractAddress, owner } = deployment
 
-      const tokenId = 0
-      const uri = 11
+      const tokenId = BigInt(0)
+      const uri = 'https://api.pudgypenguins.io/lil/18707'
 
-      const func = contract.connect(owner.wallet).setTokenURI
-      const selector = func.fragment.selector
-      let { ctInt, signature } = await prepareIT(BigInt(uri), owner, contractAddress, selector)
-      await expect((await func(tokenId, ctInt, signature, { gasLimit })).wait())
+      const encryptedTokenURI = await encryptString(uri, owner, contractAddress, contract.setTokenURI.fragment.selector)
+
+      const receipt = await (await contract
+        .connect(owner.wallet)
+        .setTokenURI(tokenId, encryptedTokenURI.map((val) => val.ciphertext), encryptedTokenURI.map((val) => val.signature), { gasLimit }))
+        .wait()
+      
+      await expect(receipt)
         .to.emit(contract, "MetadataUpdate")
         .withArgs(tokenId)
-
-      const ctRetrievedUri = await contract.tokenURI(tokenId)
-      expect(decryptValue(ctRetrievedUri, owner.userKey)).to.equal(uri)
     })
   })
 
   describe("Transfers", function () {
     describe("Successful transfer", function () {
-      const tokenId = 0
-      const tokenURI = 11
+      const tokenId = BigInt(0)
+      const tokenURI = 'https://api.pudgypenguins.io/lil/18707'
 
       before(async function () {
         const { contract, owner, otherAccount } = deployment
@@ -170,7 +170,7 @@ describe("Confidential NFT", function () {
 
         const encryptedTokenURI = await contract.tokenURI(tokenId)
 
-        const decryptedTokenURI = otherAccount.decryptValue(encryptedTokenURI)
+        const decryptedTokenURI = decryptString(encryptedTokenURI, otherAccount)
 
         expect(decryptedTokenURI).to.equal(tokenURI)
       })
@@ -180,7 +180,7 @@ describe("Confidential NFT", function () {
 
         const encryptedTokenURI = await contract.tokenURI(tokenId)
 
-        const decryptedTokenURI = owner.decryptValue(encryptedTokenURI)
+        const decryptedTokenURI = decryptString(encryptedTokenURI, owner)
 
         expect(decryptedTokenURI).to.not.equal(tokenURI)
       })

@@ -40,8 +40,8 @@ contract NFTExample is
 
     function setTokenURI(
         uint256 tokenId,
-        ctUint64 _itTokenURI,
-        bytes calldata _itSignature
+        ctUint64[] calldata _itTokenURI,
+        bytes[] calldata _itSignature
     ) public {
         _requireOwned(tokenId);
         address owner = _ownerOf(tokenId);
@@ -49,16 +49,23 @@ contract NFTExample is
             revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
         }
 
-        itUint64 memory it;
-        it.ciphertext = _itTokenURI;
-        it.signature = _itSignature;
+        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
 
-        _setTokenURI(owner, tokenId, MpcCore.validateCiphertext(it));
+        itUint64 memory it;
+
+        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
+            it.ciphertext = _itTokenURI[i];
+            it.signature = _itSignature[i];
+
+            _tokenURI[i] = MpcCore.validateCiphertext(it);
+        }
+
+        _setTokenURI(owner, tokenId, _tokenURI);
     }
 
     function mint(address to) public onlyOwner {
         uint256 tokenId = _totalSupply;
-        _mint(to, tokenId);
+        _mint(to, tokenId); // at this stage, token URI is null and can leak some information
         _totalSupply += 1;
 
         emit Minted(to, tokenId);
