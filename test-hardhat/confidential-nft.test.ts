@@ -65,6 +65,7 @@ describe("Confidential NFT", function () {
       const newTokenId = startTokenIds
       expect(await contract.ownerOf(newTokenId)).to.equal(otherAccount.wallet.address)
       expect(endTokenIds).to.equal(startTokenIds + BigInt(1))
+      expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(1))
     })
 
     it("Should fail to mint if not owner", async function () {
@@ -160,9 +161,11 @@ describe("Confidential NFT", function () {
       })
 
       it("Should transfer token to other account", async function () {
-        const { contract, otherAccount } = deployment
+        const { contract, owner, otherAccount } = deployment
   
         expect(await contract.ownerOf(tokenId)).to.equal(otherAccount.wallet.address)
+        expect(await contract.balanceOf(owner.wallet.address)).to.equal(BigInt(0))
+        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(2))
       })
 
       it("Should allow the new owner to decrypt the token URI", async function () {
@@ -186,38 +189,40 @@ describe("Confidential NFT", function () {
       })
     })
 
-    it("Should fail transfer token to other account for when no allowance", async function () {
-      const { contract, owner, otherAccount } = deployment
-
-      const tokenId = await deployment.contract.totalSupply()
-      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-
-      const tx = await contract
-        .connect(otherAccount.wallet)
-        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
+    describe("Failed transfers", function () {
+        it("Should fail transfer token to other account for when no allowance", async function () {
+          const { contract, owner, otherAccount } = deployment
+    
+          const tokenId = await deployment.contract.totalSupply()
+          await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
+    
+          const tx = await contract
+            .connect(otherAccount.wallet)
+            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+          let reverted = true
+          try {
+            await tx.wait()
+            reverted = false
+          } catch (error) {}
+          expect(reverted).to.eq(true, "Should have reverted")
+        })
+    
+        it("Should fail to transfer from non-owner", async function () {
+          const { contract, owner, otherAccount } = deployment
+    
+          const tokenId = await deployment.contract.totalSupply()
+          await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
+    
+          const tx = await contract
+            .connect(otherAccount.wallet)
+            .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+          let reverted = true
+          try {
+            await tx.wait()
+            reverted = false
+          } catch (error) {}
+          expect(reverted).to.eq(true, "Should have reverted")
+        })
+      })
     })
-
-    it("Should fail to transfer from non-owner", async function () {
-      const { contract, owner, otherAccount } = deployment
-
-      const tokenId = await deployment.contract.totalSupply()
-      await (await contract.connect(owner.wallet).mint(owner.wallet.address, { gasLimit })).wait()
-
-      const tx = await contract
-        .connect(otherAccount.wallet)
-        .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
-      let reverted = true
-      try {
-        await tx.wait()
-        reverted = false
-      } catch (error) {}
-      expect(reverted).to.eq(true, "Should have reverted")
-    })
-  })
 })
