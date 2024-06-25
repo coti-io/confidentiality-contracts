@@ -15,10 +15,7 @@ contract NFTExample is
 
     uint256 private _totalSupply;
 
-    constructor() ConfidentialERC721("Example", "EXL") Ownable(msg.sender) {
-        _totalSupply = 0;
-        mint(msg.sender);
-    }
+    constructor() ConfidentialERC721("Example", "EXL") Ownable(msg.sender) {}
 
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
@@ -38,35 +35,16 @@ contract NFTExample is
             super.supportsInterface(interfaceId);
     }
 
-    function setTokenURI(
-        uint256 tokenId,
+    function mint(
+        address to,
         ctUint64[] calldata _itTokenURI,
         bytes[] calldata _itSignature
-    ) public {
-        _requireOwned(tokenId);
-        address owner = _ownerOf(tokenId);
-        if (msg.sender != owner) {
-            revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
-        }
-
-        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
-
-        itUint64 memory it;
-
-        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
-            it.ciphertext = _itTokenURI[i];
-            it.signature = _itSignature[i];
-
-            _tokenURI[i] = MpcCore.validateCiphertext(it);
-        }
-
-        _setTokenURI(owner, tokenId, _tokenURI);
-    }
-
-    function mint(address to) public onlyOwner {
+    ) public onlyOwner {
         uint256 tokenId = _totalSupply;
         _mint(to, tokenId); // at this stage, token URI is null and can leak some information
         _totalSupply += 1;
+
+        _setTokenURI(tokenId, _itTokenURI, _itSignature);
 
         emit Minted(to, tokenId);
     }
@@ -80,6 +58,25 @@ contract NFTExample is
         override(ConfidentialERC721, ConfidentialERC721URIStorage)
     {
         return ConfidentialERC721URIStorage._mint(to, tokenId);
+    }
+
+    function _setTokenURI(
+        uint256 tokenId,
+        ctUint64[] calldata _itTokenURI,
+        bytes[] calldata _itSignature
+    ) internal {
+        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
+
+        itUint64 memory it;
+
+        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
+            it.ciphertext = _itTokenURI[i];
+            it.signature = _itSignature[i];
+
+            _tokenURI[i] = MpcCore.validateCiphertext(it);
+        }
+
+        ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, _tokenURI);
     }
 
     function _update(
