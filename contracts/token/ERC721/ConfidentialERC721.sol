@@ -17,8 +17,6 @@ abstract contract ConfidentialERC721 is
 {
     using Strings for uint256;
 
-    error ERC721AlreadyMintedToken(uint256 tokenId);
-
     // Token name
     string private _name;
 
@@ -33,6 +31,8 @@ abstract contract ConfidentialERC721 is
 
     mapping(address owner => mapping(address operator => bool))
         private _operatorApprovals;
+    
+    error ERC721AlreadyMintedToken(uint256 tokenId);
 
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.

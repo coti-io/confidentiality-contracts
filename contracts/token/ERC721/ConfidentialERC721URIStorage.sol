@@ -9,12 +9,14 @@ import "../../lib/MpcCore.sol";
  * @dev ConfidentialERC721 token with storage based token URI management.
  */
 abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
-    event MetadataUpdate(uint256 _tokenId);
-    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
-
     mapping(uint256 tokenId => ctUint64[]) private _userTokenURIs;
 
     mapping(uint256 tokenId => ctUint64[]) private _networkTokenURIs;
+    
+    event MetadataUpdate(uint256 _tokenId);
+    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
+
+    error ERC721URIStorageNonMintedToken(uint256 tokenId);
 
     /**
      * @dev See {IERC165-supportsInterface}
@@ -37,8 +39,37 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     function _setTokenURI(
         address to,
         uint256 tokenId,
-        gtUint64[] memory _tokenURI
+        ctUint64[] calldata _itTokenURI,
+        bytes[] calldata _itSignature
     ) internal virtual {
+        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
+
+        itUint64 memory it;
+
+        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
+            it.ciphertext = _itTokenURI[i];
+            it.signature = _itSignature[i];
+
+            _tokenURI[i] = MpcCore.validateCiphertext(it);
+        }
+
+        _setTokenURI(to, tokenId, _tokenURI);
+    }
+
+    /**
+     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
+     *
+     * Emits {MetadataUpdate}.
+     */
+    function _setTokenURI(
+        address to,
+        uint256 tokenId,
+        gtUint64[] memory _tokenURI
+    ) private {
+        if (!isMinted(tokenId)) {
+            revert ERC721URIStorageNonMintedToken(tokenId);
+        }
+
         ctUint64[] memory userTokenURI = new ctUint64[](_tokenURI.length);
         ctUint64[] memory networkTokenURI = new ctUint64[](_tokenURI.length);
 

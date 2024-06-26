@@ -11,9 +11,9 @@ contract NFTExample is
     Ownable,
     ConfidentialERC721URIStorage
 {
-    event Minted(address indexed to, uint256 indexed tokenId);
-
     uint256 private _totalSupply;
+    
+    event Minted(address indexed to, uint256 indexed tokenId);
 
     constructor() ConfidentialERC721("Example", "EXL") Ownable(msg.sender) {}
 
@@ -41,10 +41,10 @@ contract NFTExample is
         bytes[] calldata _itSignature
     ) public onlyOwner {
         uint256 tokenId = _totalSupply;
-        _mint(to, tokenId); // at this stage, token URI is null and can leak some information
+        _mint(to, tokenId);
         _totalSupply += 1;
 
-        _setTokenURI(tokenId, _itTokenURI, _itSignature);
+        ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, _itTokenURI, _itSignature);
 
         emit Minted(to, tokenId);
     }
@@ -58,25 +58,6 @@ contract NFTExample is
         override(ConfidentialERC721, ConfidentialERC721URIStorage)
     {
         return ConfidentialERC721URIStorage._mint(to, tokenId);
-    }
-
-    function _setTokenURI(
-        uint256 tokenId,
-        ctUint64[] calldata _itTokenURI,
-        bytes[] calldata _itSignature
-    ) internal {
-        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
-
-        itUint64 memory it;
-
-        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
-            it.ciphertext = _itTokenURI[i];
-            it.signature = _itSignature[i];
-
-            _tokenURI[i] = MpcCore.validateCiphertext(it);
-        }
-
-        ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, _tokenURI);
     }
 
     function _update(
