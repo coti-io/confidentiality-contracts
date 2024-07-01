@@ -6,13 +6,12 @@ import {ConfidentialERC721} from "../token/ERC721/ConfidentialERC721.sol";
 import {ConfidentialERC721URIStorage} from "../token/ERC721/ConfidentialERC721URIStorage.sol";
 import "../lib/MpcCore.sol";
 
-contract NFTExample is
-    ConfidentialERC721,
+contract ConfidentialNFTExample is
     Ownable,
     ConfidentialERC721URIStorage
-{
+{   
     uint256 private _totalSupply;
-    
+
     event Minted(address indexed to, uint256 indexed tokenId);
 
     constructor() ConfidentialERC721("Example", "EXL") Ownable(msg.sender) {}
@@ -27,7 +26,7 @@ contract NFTExample is
         public
         view
         virtual
-        override(ConfidentialERC721, ConfidentialERC721URIStorage)
+        override
         returns (bool)
     {
         return
@@ -41,23 +40,14 @@ contract NFTExample is
         bytes[] calldata _itSignature
     ) public onlyOwner {
         uint256 tokenId = _totalSupply;
-        _mint(to, tokenId);
-        _totalSupply += 1;
+        
+        ConfidentialERC721._mint(to, tokenId);
 
         ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, _itTokenURI, _itSignature);
 
-        emit Minted(to, tokenId);
-    }
+        _totalSupply += 1;
 
-    function _mint(
-        address to,
-        uint256 tokenId
-    )
-        internal
-        virtual
-        override(ConfidentialERC721, ConfidentialERC721URIStorage)
-    {
-        return ConfidentialERC721URIStorage._mint(to, tokenId);
+        emit Minted(to, tokenId);
     }
 
     function _update(
@@ -67,7 +57,7 @@ contract NFTExample is
     )
         internal
         virtual
-        override(ConfidentialERC721, ConfidentialERC721URIStorage)
+        override
         returns (address)
     {
         return ConfidentialERC721URIStorage._update(to, tokenId, auth);

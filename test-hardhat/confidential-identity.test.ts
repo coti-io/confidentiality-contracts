@@ -1,6 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
+import { decryptUint, prepareUintIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 
 const gasLimit = 12000000
@@ -34,12 +34,12 @@ describe("Confidential Identity", function () {
 
     const func = contract.connect(owner.wallet).setIdentifier
     const selector = func.fragment.selector
-    const { ctInt, signature } = await prepareIT(BigInt(idAge), owner, contractAddress, selector)
+    const { ctInt, signature } = await prepareUintIT(BigInt(idAge), owner, contractAddress, selector)
     await (await func(owner.wallet.address, "age", ctInt, signature, { gasLimit })).wait()
 
     await (await contract.grantAccess(deployment.owner.wallet.address, ["age"], { gasLimit })).wait()
     const ctAge = await contract.getIdentifier.staticCall(deployment.owner.wallet.address, "age", { gasLimit })
-    expect(decryptValue(ctAge, owner.userKey)).to.eq(idAge)
+    expect(decryptUint(ctAge, owner.userKey)).to.eq(idAge)
   })
 
   it("Should revert when trying to get identifier without access", async function () {
@@ -60,6 +60,6 @@ describe("Confidential Identity", function () {
     const ctAge = await contract
       .connect(otherAccount.wallet)
       .getIdentifier.staticCall(owner.wallet.address, "age", { gasLimit, from: otherAccount.wallet.address })
-    expect(decryptValue(ctAge, otherAccount.userKey)).to.eq(idAge)
+    expect(decryptUint(ctAge, otherAccount.userKey)).to.eq(idAge)
   })
 })
