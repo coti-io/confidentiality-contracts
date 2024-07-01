@@ -1,6 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { type ConfidentialAccount, decryptValue, prepareIT } from "@coti-io/coti-sdk-typescript"
+import { type ConfidentialAccount, decryptUint, prepareUintIT } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 import { deploymentInfo } from "./confidential-erc20.test"
 
@@ -32,7 +32,7 @@ async function expectBalance(
   user: ConfidentialAccount
 ) {
   const ctBalance = await token.connect(user.wallet).balanceOf()
-  let balance = decryptValue(ctBalance, user.userKey)
+  let balance = decryptUint(ctBalance, user.userKey)
   expect(balance).to.equal(amount)
 }
 
@@ -42,7 +42,7 @@ async function expectBid(
   user: ConfidentialAccount
 ) {
   const ctBalance = await contract.connect(user.wallet).getBid.staticCall()
-  let bid = decryptValue(ctBalance, user.userKey)
+  let bid = decryptUint(ctBalance, user.userKey)
   expect(bid).to.equal(amount)
 }
 
@@ -80,13 +80,13 @@ describe("Confidential Auction", function () {
     it(`Bid ${bidAmount}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
-      const initialBalance = decryptValue(await token.connect(owner.wallet).balanceOf(), owner.userKey)
+      const initialBalance = decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey)
 
       await (await token.connect(owner.wallet).approveClear(contractAddress, bidAmount, { gasLimit })).wait()
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await prepareIT(BigInt(bidAmount), owner, contractAddress, selector)
+      const { ctInt, signature } = await prepareUintIT(BigInt(bidAmount), owner, contractAddress, selector)
       await (await func(ctInt, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
@@ -97,13 +97,13 @@ describe("Confidential Auction", function () {
     it(`Increase Bid ${bidAmount * 2}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
-      const initialBalance = decryptValue(await token.connect(owner.wallet).balanceOf(), owner.userKey)
+      const initialBalance = decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey)
 
       await (await token.connect(owner.wallet).approveClear(contractAddress, bidAmount * 2, { gasLimit })).wait()
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await prepareIT(BigInt(bidAmount * 2), owner, contractAddress, selector)
+      const { ctInt, signature } = await prepareUintIT(BigInt(bidAmount * 2), owner, contractAddress, selector)
       await (await func(ctInt, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
@@ -117,7 +117,7 @@ describe("Confidential Auction", function () {
       await (await contract.connect(owner.wallet).stop({ gasLimit })).wait()
 
       const ctBool = await contract.connect(owner.wallet).doIHaveHighestBid.staticCall({ gasLimit })
-      let bool = decryptValue(ctBool, owner.userKey)
+      let bool = decryptUint(ctBool, owner.userKey)
       expect(bool).to.eq(1)
     })
   })
