@@ -9,7 +9,7 @@
 
 "@coti-io/coti-sdk-typescript@https://github.com/coti-io/coti-sdk-typescript.git":
   version "0.0.1"
-  resolved "https://github.com/coti-io/coti-sdk-typescript.git#aa09c58ae2382cb07c1057523d9d54ef18d7b827"
+  resolved "https://github.com/coti-io/coti-sdk-typescript.git#43c66ad9dea214e793856e4904d07d5621df571e"
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
