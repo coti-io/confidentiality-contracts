@@ -43,6 +43,8 @@ contract ConfidentialAuction {
 
     event Winner(address who);
 
+    event HighestBid(ctBool isHighestBid);
+
     constructor(
         address _beneficiary,
         ConfidentialERC20 _tokenContract,
@@ -121,7 +123,8 @@ contract ConfidentialAuction {
         manuallyStopped = true;
     }
 
-    function doIHaveHighestBid() public onlyAfterEnd returns (ctBool) {
+    // function doIHaveHighestBid() public onlyAfterEnd returns (ctBool) {
+    function doIHaveHighestBid() public {
         gtBool isHighest = MpcCore.setPublic(false);
         if (
             ctUint64.unwrap(highestBid) != 0 &&
@@ -132,7 +135,8 @@ contract ConfidentialAuction {
                 MpcCore.onBoard(highestBid)
             );
         }
-        return MpcCore.offBoardToUser(isHighest, msg.sender);
+        
+        emit HighestBid(MpcCore.offBoardToUser(isHighest, msg.sender));
     }
 
     function claim() public onlyAfterEnd {

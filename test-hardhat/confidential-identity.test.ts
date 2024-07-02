@@ -38,7 +38,11 @@ describe("Confidential Identity", function () {
     await (await func(owner.wallet.address, "age", ctInt, signature, { gasLimit })).wait()
 
     await (await contract.grantAccess(deployment.owner.wallet.address, ["age"], { gasLimit })).wait()
-    const ctAge = await contract.getIdentifier.staticCall(deployment.owner.wallet.address, "age", { gasLimit })
+
+    const receipt = await (await contract.getIdentifier(deployment.owner.wallet.address, "age", { gasLimit })).wait()
+
+    const ctAge = (receipt!.logs[0] as any).args[0]
+
     expect(decryptUint(ctAge, owner.userKey)).to.eq(idAge)
   })
 
@@ -57,9 +61,12 @@ describe("Confidential Identity", function () {
 
     await (await contract.connect(owner.wallet).grantAccess(otherAccount.wallet.address, ["age"], { gasLimit })).wait()
 
-    const ctAge = await contract
+    const receipt = await (await contract
       .connect(otherAccount.wallet)
-      .getIdentifier.staticCall(owner.wallet.address, "age", { gasLimit, from: otherAccount.wallet.address })
+      .getIdentifier(owner.wallet.address, "age", { gasLimit, from: otherAccount.wallet.address })).wait()
+
+    const ctAge = (receipt!.logs[0] as any).args[0]
+
     expect(decryptUint(ctAge, otherAccount.userKey)).to.eq(idAge)
   })
 })

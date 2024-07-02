@@ -116,9 +116,12 @@ describe("Confidential Auction", function () {
 
       await (await contract.connect(owner.wallet).stop({ gasLimit })).wait()
 
-      const ctBool = await contract.connect(owner.wallet).doIHaveHighestBid.staticCall({ gasLimit })
-      let bool = decryptUint(ctBool, owner.userKey)
-      expect(bool).to.eq(1)
+      const receipt = await (await contract.connect(owner.wallet).doIHaveHighestBid({ gasLimit })).wait()
+
+      const ctBool = (receipt!.logs[0] as any).args[0]
+
+      let isHighestBid = decryptUint(ctBool, owner.userKey)
+      expect(isHighestBid).to.eq(1)
     })
   })
 })
