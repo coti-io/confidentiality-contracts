@@ -25,6 +25,7 @@ contract ConfidentialIdentityRegistry is Ownable2Step {
     event RemoveRegistrar(address wallet);
     event NewDid(address wallet);
     event RemoveDid(address wallet);
+    event Identifier(ctUint64 identifier);
 
     constructor() Ownable(msg.sender) {}
 
@@ -148,13 +149,13 @@ contract ConfidentialIdentityRegistry is Ownable2Step {
         public
         onlyExistingWallet(wallet)
         onlyAllowed(wallet, identifier)
-        returns (ctUint64)
     {
-        return
+        emit Identifier(
             MpcCore.offBoardToUser(
                 MpcCore.onBoard(identities[wallet].identifiers[identifier]),
                 msg.sender
-            );
+            )
+        );
     }
 
     // ACL
