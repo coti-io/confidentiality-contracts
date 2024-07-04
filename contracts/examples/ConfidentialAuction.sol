@@ -123,7 +123,6 @@ contract ConfidentialAuction {
         manuallyStopped = true;
     }
 
-    // function doIHaveHighestBid() public onlyAfterEnd returns (ctBool) {
     function doIHaveHighestBid() public {
         gtBool isHighest = MpcCore.setPublic(false);
         if (

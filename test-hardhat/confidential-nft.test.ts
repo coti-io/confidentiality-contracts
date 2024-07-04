@@ -81,12 +81,7 @@ describe("Confidential NFT", function () {
   
         expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(1))
       })
-      
-      it("Should emit a 'MetadataUpdate' event", async function () {
-        const { contract } = deployment
-  
-        expect(tx).to.emit(contract, "MetadataUpdate").withArgs(BigInt(0))
-      })
+
     })
 
     it("Should fail to mint if not owner", async function () {

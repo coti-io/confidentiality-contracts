@@ -11,7 +11,7 @@ import "../../lib/MpcCore.sol";
 abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     mapping(uint256 tokenId => utUint64[]) private _tokenURIs;
     
-    event MetadataUpdate(uint256 _tokenId);
+
     event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
 
     error ERC721URIStorageNonMintedToken(uint256 tokenId);
@@ -40,7 +40,6 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     /**
      * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
      *
-     * Emits {MetadataUpdate}.
      */
     function _setTokenURI(
         address to,
@@ -65,7 +64,6 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     /**
      * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
      *
-     * Emits {MetadataUpdate}.
      */
     function _setTokenURI(
         address to,
@@ -100,7 +98,7 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
             _tokenURIs[tokenId] = tokenURI;
         }
         
-        emit MetadataUpdate(tokenId);
+
     }
 
     function _update(
