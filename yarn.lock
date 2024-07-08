@@ -7,9 +7,10 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.1.tgz#63430d04bd8c5e74f8d7d049338f1cd9d4f02069"
   integrity sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==
 
-"@coti-io/coti-sdk-typescript@https://github.com/coti-io/coti-sdk-typescript.git":
-  version "0.0.1"
-  resolved "https://github.com/coti-io/coti-sdk-typescript.git#43c66ad9dea214e793856e4904d07d5621df571e"
+"@coti-io/coti-sdk-typescript@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@coti-io/coti-sdk-typescript/-/coti-sdk-typescript-0.5.0.tgz#22f6cf5100c655da79c09d69f70c1f8f931eab20"
+  integrity sha512-lxkgJ6Qnh9KyGhNo1nCyBws+E4m6iL6muBj3H1p3dSQiTtVmcrYXUmNX0yf15CDzvpnYPKXO6ATvGRT9xTBlbg==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
