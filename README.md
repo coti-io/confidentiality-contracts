@@ -69,15 +69,15 @@ The following example contracts are available for Hardhat Runtime Environment fo
 
 ### ERC20Example
 
-The following process will help you run the [**ERC20Example.sol**](https://github.com/coti-io/confidentiality-contracts/blob/main/contracts/examples/ERC20Example.sol) example from the [**COTI confidentiality-contracts**](https://github.com/coti-io/confidentiality-contracts) project. The contract defines a custom ERC20 token called `ERC20Example` that extends the functionality of the ConfidentialERC20 token. Additionally it will:
+The following process will help you run the [**ERC20Example.sol**](/contracts/examples/ERC20Example.sol) example from the [**COTI confidentiality-contracts**](https://github.com/coti-io/confidentiality-contracts) project. The contract defines a custom ERC20 token called `ERC20Example` that extends the functionality of the ConfidentialERC20 token. Additionally it will:
 
 * Create a EOA (Externally Owned Account)
 * Validate minimum balance
 
-The contract is compiled and deployed with Hardhat using the [`confidential-erc20.test.ts`](https://github.com/coti-io/confidentiality-contracts/blob/main/test-hardhat/confidential-erc20.test.ts) test suite contained in the [`test-hardhat`](https://github.com/coti-io/confidentiality-contracts/tree/main/test-hardhat) directory of the project.
+The contract is compiled and deployed with Hardhat using the [`confidential-erc20.test.ts`](/test-hardhat/confidential-erc20.test.ts) test suite contained in the [`test-hardhat`](/test-hardhat) directory of the project.
 
 > [!NOTE]  
-> Ensure your environment meets all the pre-requisites. Visit the [pre-requisites section of the readme](https://github.com/coti-io/confidentiality-contracts/blob/main/README.md).
+> Ensure your environment meets all the pre-requisites. Visit the [pre-requisites section of the readme](/README.md).
 
 1.  Clone the confidentiality-contracts  repo
 
@@ -113,8 +113,7 @@ The contract is compiled and deployed with Hardhat using the [`confidential-erc2
     yarn test-erc20
     ```
 
-    \
-    Running this test will automatically create an account and a key/value pair with name: `SIGNING_KEYS` (visible in the .env file). The script will output something like this:\
+    Running this test will automatically create an account and a key/value pair with name: `SIGNING_KEYS` (visible in the .env file). The script will output something like this:
 
 
     ```bash
@@ -142,7 +141,7 @@ The contract is compiled and deployed with Hardhat using the [`confidential-erc2
    \
    The bot will reply with the message:\
    \
-   `<username> faucet transferred 5 COTIv2 (devnet)` \
+   `<username> faucet transferred 10 COTIv2 (devnet)` \
    &#x20;
 7.  Run the `test-erc20` test suite once more.
 
@@ -211,7 +210,12 @@ Running the test suite does the following:
    ```
    yarn test-identity
    ```
+   
+   or
 
+   ```
+   yarn test-precompiles
+   ```
 ### Add contracts to your Hardhat project
 
 ```shell
