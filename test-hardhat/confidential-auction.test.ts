@@ -1,6 +1,6 @@
 import hre from "hardhat"
 import { expect } from "chai"
-import { type ConfidentialAccount, decryptUint, prepareUintIT } from "@coti-io/coti-sdk-typescript"
+import { type ConfidentialAccount, decryptUint, buildInputText } from "@coti-io/coti-sdk-typescript"
 import { setupAccounts } from "./util/onboard"
 import { deploymentInfo } from "./confidential-erc20.test"
 
@@ -80,13 +80,13 @@ describe("Confidential Auction", function () {
     it(`Bid ${bidAmount}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
-      const initialBalance = decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey)
+      const initialBalance = Number(decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey))
 
       await (await token.connect(owner.wallet).approveClear(contractAddress, bidAmount, { gasLimit })).wait()
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await prepareUintIT(BigInt(bidAmount), owner, contractAddress, selector)
+      const { ctInt, signature } = await buildInputText(BigInt(bidAmount), owner, contractAddress, selector)
       await (await func(ctInt, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
@@ -97,13 +97,13 @@ describe("Confidential Auction", function () {
     it(`Increase Bid ${bidAmount * 2}`, async function () {
       const { token, contract, contractAddress, owner } = deployment
 
-      const initialBalance = decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey)
+      const initialBalance = Number(decryptUint(await token.connect(owner.wallet).balanceOf(), owner.userKey))
 
       await (await token.connect(owner.wallet).approveClear(contractAddress, bidAmount * 2, { gasLimit })).wait()
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await prepareUintIT(BigInt(bidAmount * 2), owner, contractAddress, selector)
+      const { ctInt, signature } = await buildInputText(BigInt(bidAmount * 2), owner, contractAddress, selector)
       await (await func(ctInt, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
