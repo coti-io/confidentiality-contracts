@@ -76,6 +76,7 @@ This Solidity interface, `ExtendedOperations`, defines a set of functions for pe
 
 ### Validation and Transfer Functions
 - `ValidateCiphertext(bytes calldata ciphertext, bytes calldata signature)`: Validates the given ciphertext and signature.
+    - If the input is not valid, the call will revert with no return data and no additional gas will be consumed.
 - `TransferWithAllowance(address from, address to, uint256 amount, bytes calldata signature)`: Transfers the specified amount from one address to another with the provided signature.
 
 This interface is designed to be implemented by a contract that performs secure multi-party computation, providing essential operations such as arithmetic, bitwise, and comparison functions, as well as onboarding and offboarding participants or data.
