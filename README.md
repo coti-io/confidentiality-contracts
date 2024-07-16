@@ -46,7 +46,10 @@ The following contracts are available in each of the packages:
 
 # Hardhat ([confidential-contracts](https://github.com/coti-io/confidentiality-contracts))
 
-The `confidential-contracts` project is comprised of three main components:
+> [!NOTE]
+> Please refer to the latest [tags](https://github.com/coti-io/confidentiality-contracts/tags) to find the most stable version to use.
+
+The `confidentiality-contracts` project is composed of three main components:
 
 1. **Reference libraries** (located in `contracts/lib`): containts the `MpcCore` and `MpcInterface` libraries referenced by all other SDKs. These libraries contain instructions for methods which the gcEVM handles as bytecode. For a full description of the libraries visit the [libraries readme](contracts/lib/lib_readme.md).
 
