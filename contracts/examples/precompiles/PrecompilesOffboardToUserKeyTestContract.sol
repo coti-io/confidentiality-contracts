@@ -13,6 +13,8 @@ contract PrecompilesOffboardToUserKeyTestContract {
     uint256 ct32;
     uint256 ct64;
 
+    event AccountOnboarded(address indexed _from, bytes userKey);
+
     function getCTs() public view returns (uint256, uint256, uint256, uint256) {
         return (ct8, ct16, ct32, ct64);
     }
@@ -47,8 +49,9 @@ contract PrecompilesOffboardToUserKeyTestContract {
     function userKeyTest(
         bytes calldata signedEK,
         bytes calldata signature
-    ) public view returns (bytes memory key) {
-        return MpcCore.getUserKey(signedEK, signature);
+    ) public {
+        bytes memory encryptedKey = MpcCore.getUserKey(signedEK, signature);
+        emit AccountOnboarded(msg.sender, encryptedKey);
     }
 
     function offboardToUserTest(
