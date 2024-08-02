@@ -43,7 +43,7 @@ function buildTestWithUser(contractName: string, func: string, resFunc: string, 
     await (await contract.getFunction(func)(param, owner.wallet.address, { gasLimit: 12000000 })).wait()
     const results = await contract.getFunction(resFunc)()
     for (const result of results) {
-      expect(owner.decryptValue(result)).to.equal(param)
+      expect(owner.decryptUint(result)).to.equal(param)
     }
   })
 }
