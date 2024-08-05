@@ -24,7 +24,7 @@ Please note that this project is governed by our [Code of Conduct](CODE_OF_CONDU
 
 ### Reporting Bugs
 
-If you encounter any bugs, please report them by [opening an issue](https://github.com/coti-io/coti-sdk-typescript-examples/issues/new) on GitHub. Include as much detail as possible, including steps to reproduce the bug, the environment you encountered it in, and any other relevant information.
+If you encounter any bugs, please report them by [opening an issue](https://github.com/coti-io/confidentiality-contracts/issues/new) on GitHub. Include as much detail as possible, including steps to reproduce the bug, the environment you encountered it in, and any other relevant information.
 
 ### Suggesting Enhancements
 
