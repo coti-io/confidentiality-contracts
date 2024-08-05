@@ -28,7 +28,7 @@ If you encounter any bugs, please report them by [opening an issue](https://gith
 
 ### Suggesting Enhancements
 
-If you have ideas for new features or improvements, feel free to suggest them by [opening an issue](https://github.com/coti-io/coti-sdk-typescript-examples/issues/new) on GitHub. Please provide a clear description of the proposed enhancement and why it would be beneficial to the project.
+If you have ideas for new features or improvements, feel free to suggest them by [opening an issue](https://github.com/coti-io/confidentiality-contracts/issues/new) on GitHub. Please provide a clear description of the proposed enhancement and why it would be beneficial to the project.
 
 ### Contributing Code
 
