@@ -8,11 +8,23 @@ type gtUint16 is uint256;
 type gtUint32 is uint256;
 type gtUint64 is uint256;
 
+// we use a struct because user-defined value types can only be elementary value types
+// 8 characters (in byte form) per cell and the final cell padded with zeroes if needed
+struct gtString {
+    gtUint64[] value;
+}
+
 type ctBool is uint256;
 type ctUint8 is uint256;
 type ctUint16 is uint256;
 type ctUint32 is uint256;
 type ctUint64 is uint256;
+
+// we use a struct because user-defined value types can only be elementary value types
+// 8 characters (in byte form) per cell and the final cell padded with zeroes if needed
+struct ctString {
+    ctUint64[] value;
+}
 
 struct itBool {
     ctBool ciphertext;
@@ -33,6 +45,10 @@ struct itUint32 {
 struct itUint64 {
     ctUint64 ciphertext;
     bytes signature;
+}
+struct itString {
+    ctString ciphertext;
+    bytes[] signature;
 }
 
 struct utBool {
@@ -55,6 +71,10 @@ struct utUint64 {
     ctUint64 ciphertext;
     ctUint64 userCiphertext;
 }
+struct utString {
+    ctString ciphertext;
+    ctString userCiphertext;
+}
 
 
 import "./MpcInterface.sol";
@@ -62,8 +82,8 @@ import "./MpcInterface.sol";
 
 library MpcCore {
 
-    enum MPC_TYPE {SBOOL_T , SUINT8_T , SUINT16_T, SUINT32_T ,SUINT64_T }
-    enum ARGS {BOTH_SECRET , LHS_PUBLIC, RHS_PUBLIC  }
+    enum MPC_TYPE {SBOOL_T, SUINT8_T, SUINT16_T, SUINT32_T, SUINT64_T}
+    enum ARGS {BOTH_SECRET, LHS_PUBLIC, RHS_PUBLIC}
 
     function combineEnumsToBytes2(MPC_TYPE mpcType, ARGS argsType) internal pure returns (bytes2) {
         return bytes2(uint16(mpcType) << 8 | uint8(argsType));
@@ -95,7 +115,7 @@ library MpcCore {
 
     
 
-// =========== 1 bit operations ==============
+    // =========== 1 bit operations ==============
 
     function validateCiphertext(itBool memory input) internal returns (gtBool) {
         return gtBool.wrap(ExtendedOperations(MPC_PRECOMPILE).
@@ -175,8 +195,8 @@ library MpcCore {
     }
 
 
- // =========== Operations with BOTH_SECRET parameter ===========
- // =========== 8 bit operations ==============
+    // =========== Operations with BOTH_SECRET parameter ===========
+    // =========== 8 bit operations ==============
 
     function validateCiphertext(itUint8 memory input) internal returns (gtUint8) {
         return gtUint8.wrap(ExtendedOperations(MPC_PRECOMPILE).
@@ -323,7 +343,7 @@ library MpcCore {
     }
 
 
- // =========== 16 bit operations ==============
+    // =========== 16 bit operations ==============
 
     function validateCiphertext(itUint16 memory input) internal returns (gtUint16) {
         return gtUint16.wrap(ExtendedOperations(MPC_PRECOMPILE).
@@ -617,7 +637,7 @@ library MpcCore {
 
 
 
-// =========== 64 bit operations ==============
+    // =========== 64 bit operations ==============
 
     function validateCiphertext(itUint64 memory input) internal returns (gtUint64) {
         return gtUint64.wrap(ExtendedOperations(MPC_PRECOMPILE).
@@ -776,9 +796,203 @@ library MpcCore {
 
 
 
+    // =========== String operations ============
 
-// =========== Operations with LHS_PUBLIC parameter ===========
- // =========== 8 bit operations ==============
+    function validateCiphertext(itString memory input) internal returns (gtString memory) {
+        uint256 len_ = input.signature.length;
+
+        require(input.ciphertext.value.length == len_, "MPC_CORE: INVALID_INPUT_TEXT");
+
+        gtString memory gt_ = gtString(new gtUint64[](len_));
+
+        itUint64 memory it_;
+
+        for (uint256 i = 0; i < len_; ++i) {
+            it_.ciphertext = input.ciphertext.value[i];
+            it_.signature = input.signature[i];
+
+            gt_.value[i] = validateCiphertext(it_);
+        }
+
+        return gt_;
+    }
+
+    function onBoard(ctString memory ct) internal returns (gtString memory) {
+        uint256 len_ = ct.value.length;
+
+        gtString memory gt_ = gtString(new gtUint64[](len_));
+
+        for (uint256 i = 0; i < len_; ++i) {
+            gt_.value[i] = onBoard(ct.value[i]);
+        }
+
+        return gt_;
+    }
+
+    function offBoard(gtString memory pt) internal returns (ctString memory) {
+        uint256 len_ = pt.value.length;
+
+        ctString memory ct_ = ctString(new ctUint64[](len_));
+
+        for (uint256 i = 0; i < len_; ++i) {
+            ct_.value[i] = offBoard(pt.value[i]);
+        }
+
+        return ct_;
+    }
+
+    function offBoardToUser(gtString memory pt, address addr) internal returns (ctString memory) {
+        uint256 len_ = pt.value.length;
+
+        ctString memory ct_ = ctString(new ctUint64[](len_));
+
+        for (uint256 i = 0; i < len_; ++i) {
+            ct_.value[i] = offBoardToUser(pt.value[i], addr);
+        }
+
+        return ct_;
+    }
+
+    function offBoardCombined(gtString memory pt, address addr) internal returns (utString memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
+    }
+
+    function setPublicString(string memory pt) internal returns (gtString memory) {
+        bytes memory strBytes_ = bytes(pt);
+        uint256 len_ = strBytes_.length;
+        uint256 count_ = (len_ + 7) / 8; // Number of bytes8 elements needed
+
+        gtString memory result_ = gtString(new gtUint64[](count_));
+
+        bytes8 cell_;
+        uint256 byteIdx_;
+        
+        for (uint256 i = 0; i < count_; ++i) {
+            cell_ = bytes8(0);
+
+            for (uint256 j = 0; j < 8; ++j) {
+                cell_ <<= 8;
+                byteIdx_ = (i * 8) + j;
+
+                if (byteIdx_ < len_) {
+                    cell_ |= bytes8(strBytes_[byteIdx_]) >> 56;
+                }
+            }
+
+            result_.value[i] = setPublic64(uint64(cell_));
+        }
+
+        return result_;
+    }
+
+    // generates a random alpha-numeric string of the desired length
+    function randString(uint256 len) internal returns (gtString memory) {
+        uint256 count_ = (len + 7) / 8; // Number of bytes8 elements needed
+        gtString memory result_ = gtString(new gtUint64[](count_));
+
+        gtUint64 ZERO_ASCII = setPublic64(48);
+        gtUint64 NINE_ASCII = setPublic64(57);
+        gtUint64 UPPERCASE_A_ASCII = setPublic64(65);
+        gtUint64 UPPERCASE_Z_ASCII = setPublic64(90);
+        gtUint64 LOWERCASE_A_ASCII = setPublic64(97);
+        gtUint64 LOWERCASE_Z_ASCII = setPublic64(122);
+
+        gtUint64 temp_ = setPublic64(0);
+        gtUint64 char_ = setPublic64(0);
+
+        for (uint256 i = 0; i < count_; ++i) {
+            temp_ = setPublic64(0);
+
+            for (uint256 j = 0; j < 8; ++j) {
+                while (true) {
+                    char_ = randBoundedBits64(7);
+
+                    if (
+                        decrypt(
+                            or(
+                                or(
+                                    and(
+                                        ge(char_, ZERO_ASCII),
+                                        le(char_, NINE_ASCII)
+                                    ),
+                                    and(
+                                        ge(char_, UPPERCASE_A_ASCII),
+                                        le(char_, UPPERCASE_Z_ASCII)
+                                    )
+                                ),
+                                and(
+                                    ge(char_, LOWERCASE_A_ASCII),
+                                    le(char_, LOWERCASE_Z_ASCII)
+                                )
+                            )
+                        )
+                    ) {
+                        break;
+                    }
+                }
+
+                temp_ = shl(temp_, setPublic64(8));
+                temp_ = or(temp_, char_);
+            }
+
+            result_.value[i] = temp_;
+        }
+        
+        return result_;
+    }
+
+    function decrypt(gtString memory ct) internal returns (string memory){
+        uint256 len_ = ct.value.length;
+        bytes memory result_ = new bytes(len_ * 8);
+
+        bytes8 temp_;
+
+        for (uint256 i = 0; i < len_; ++i) {
+            temp_ = bytes8(decrypt(ct.value[i]));
+
+            for (uint256 j = 0; j < 8; j++) {
+                result_[(i * 8) + j] = temp_[j];
+            }
+        }
+
+        return string(result_);
+    }
+
+    function eq(gtString memory a, gtString memory b) internal returns (gtBool) {
+        uint256 len = a.value.length;
+
+        // note that we are not leaking information since the array length is visible to all
+        if (len != b.value.length) return setPublic(false);
+
+        gtBool result_ = eq(a.value[0], b.value[0]);
+
+        for (uint256 i = 1; i < len; ++i) {
+            result_ = and(result_, eq(a.value[i], b.value[i]));
+        }
+
+        return result_;
+    }
+
+    function ne(gtString memory a, gtString memory b) internal returns (gtBool) {
+        uint256 len = a.value.length;
+
+        // note that we are not leaking information since the array length is visible to all
+        if (len != b.value.length) return setPublic(true);
+
+        gtBool result_ = ne(a.value[0], b.value[0]);
+
+        for (uint256 i = 1; i < len; ++i) {
+            result_ = or(result_, ne(a.value[i], b.value[i]));
+        }
+
+        return result_;
+    }
+
+
+
+    // =========== Operations with LHS_PUBLIC parameter ===========
+    // =========== 8 bit operations ==============
 
     function add(uint8 a, gtUint8 b) internal returns (gtUint8) {
         return gtUint8.wrap(ExtendedOperations(MPC_PRECOMPILE).
@@ -1147,6 +1361,7 @@ library MpcCore {
         return gtUint64.wrap(ExtendedOperations(MPC_PRECOMPILE).
             Max(combineEnumsToBytes3(MPC_TYPE.SUINT64_T, MPC_TYPE.SUINT64_T, ARGS.LHS_PUBLIC), uint256(a), gtUint64.unwrap(b)));
     }
+
 
     
  // =========== Operations with RHS_PUBLIC parameter ===========
@@ -1520,6 +1735,8 @@ library MpcCore {
             Max(combineEnumsToBytes3(MPC_TYPE.SUINT64_T, MPC_TYPE.SUINT64_T, ARGS.RHS_PUBLIC), gtUint64.unwrap(a), uint256(b)));
     }
 
+
+
     // In the context of a transfer, scalar balances are irrelevant;
 	// The only possibility for a scalar value is within the "amount" parameter.
 	// Therefore, in this scenario, LHS_PUBLIC signifies a scalar amount, not balance1.
@@ -1620,7 +1837,6 @@ library MpcCore {
         return (gtUint64.wrap(new_a), gtUint64.wrap(new_b), gtBool.wrap(res));
     }
 
-    
     
 
  // ================= Cast operation =================
@@ -2565,6 +2781,8 @@ library MpcCore {
         return (gtUint64.wrap(new_a), gtUint64.wrap(new_b), gtBool.wrap(res));
     }
 
+
+
     // =========== 16 - 64 bit operations ==============
     
     function add(gtUint16 a, gtUint64 b) internal returns (gtUint64) {
@@ -2810,6 +3028,8 @@ library MpcCore {
             Transfer(combineEnumsToBytes4(MPC_TYPE.SUINT64_T, MPC_TYPE.SUINT64_T, MPC_TYPE.SUINT16_T, ARGS.BOTH_SECRET), gtUint64.unwrap(a), gtUint64.unwrap(b), gtUint16.unwrap(amount));
         return (gtUint64.wrap(new_a), gtUint64.wrap(new_b), gtBool.wrap(res));
     }
+
+
 
      // =========== 32 - 64 bit operations ==============
     
