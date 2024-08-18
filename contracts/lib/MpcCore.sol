@@ -14,6 +14,12 @@ struct gtString {
     gtUint64[] value;
 }
 
+struct gtAddress {
+    gtUint64 gt1; // bytes 1 - 8
+    gtUint64 gt2; // bytes 9 - 16
+    gtUint32 gt3; // bytes 17 - 20
+}
+
 type ctBool is uint256;
 type ctUint8 is uint256;
 type ctUint16 is uint256;
@@ -24,6 +30,12 @@ type ctUint64 is uint256;
 // 8 characters (in byte form) per cell and the final cell padded with zeroes if needed
 struct ctString {
     ctUint64[] value;
+}
+
+struct ctAddress {
+    ctUint64 ct1; // bytes 1 - 8
+    ctUint64 ct2; // bytes 9 - 16
+    ctUint32 ct3; // bytes 17 - 20
 }
 
 struct itBool {
@@ -50,6 +62,12 @@ struct itString {
     ctString ciphertext;
     bytes[] signature;
 }
+struct itAddress {
+    ctAddress ciphertext;
+    bytes signature1;
+    bytes signature2;
+    bytes signature3;
+}
 
 struct utBool {
     ctBool ciphertext;
@@ -74,6 +92,10 @@ struct utUint64 {
 struct utString {
     ctString ciphertext;
     ctString userCiphertext;
+}
+struct utAddress {
+    ctAddress ciphertext;
+    ctAddress userCiphertext;
 }
 
 
@@ -985,6 +1007,112 @@ library MpcCore {
         for (uint256 i = 1; i < len; ++i) {
             result_ = or(result_, ne(a.value[i], b.value[i]));
         }
+
+        return result_;
+    }
+
+
+
+    // ========== Address operations ===========
+
+    function validateCiphertext(itAddress memory input) internal returns (gtAddress memory) {
+        gtAddress memory gt_;
+
+        itUint64 memory it1_;
+
+        it1_.ciphertext = input.ciphertext.ct1;
+        it1_.signature = input.signature1;
+        gt_.gt1 = validateCiphertext(it1_);
+
+        it1_.ciphertext = input.ciphertext.ct2;
+        it1_.signature = input.signature2;
+        gt_.gt2 = validateCiphertext(it1_);
+
+        itUint32 memory it2_ = itUint32(input.ciphertext.ct3, input.signature3);
+        gt_.gt3 = validateCiphertext(it2_);
+
+        return gt_;
+    }
+
+    function onBoard(ctAddress memory ct) internal returns (gtAddress memory) {
+        gtAddress memory gt_;
+
+        gt_.gt1 = onBoard(ct.ct1);
+        gt_.gt2 = onBoard(ct.ct2);
+        gt_.gt3 = onBoard(ct.ct3);
+
+        return gt_;
+    }
+
+    function offBoard(gtAddress memory pt) internal returns (ctAddress memory) {
+        ctAddress memory ct_;
+
+        ct_.ct1 = offBoard(pt.gt1);
+        ct_.ct2 = offBoard(pt.gt2);
+        ct_.ct3 = offBoard(pt.gt3);
+
+        return ct_;
+    }
+
+    function offBoardToUser(gtAddress memory pt, address addr) internal returns (ctAddress memory) {
+        ctAddress memory ct_;
+
+        ct_.ct1 = offBoardToUser(pt.gt1, addr);
+        ct_.ct2 = offBoardToUser(pt.gt2, addr);
+        ct_.ct3 = offBoardToUser(pt.gt3, addr);
+
+        return ct_;
+    }
+
+    function offBoardCombined(gtAddress memory pt, address addr) internal returns (utAddress memory ut) {
+        ut.ciphertext = offBoard(pt);
+        ut.userCiphertext = offBoardToUser(pt, addr);
+    }
+
+    function setPublicAddress(address pt) internal returns (gtAddress memory) {
+        gtAddress memory result_;
+
+        result_.gt1 = setPublic64(uint64(bytes8(bytes20(pt))));
+        result_.gt2 = setPublic64(uint64(bytes8(bytes20(pt) << 64)));
+        result_.gt3 = setPublic32(uint32(bytes4(bytes20(pt) << 128)));
+
+        return result_;
+    }
+
+    function randAddress() internal returns (gtAddress memory) {
+        gtAddress memory result_;
+
+        result_.gt1 = rand64();
+        result_.gt2 = rand64();
+        result_.gt3 = rand32();
+
+        return result_;
+    }
+
+    function decrypt(gtAddress memory ct) internal returns (address){
+        bytes20 result_;
+
+        result_ |= bytes20(bytes8(decrypt(ct.gt1)));
+        result_ |= bytes20(bytes8(decrypt(ct.gt2))) >> 64;
+        result_ |= bytes20(bytes4(decrypt(ct.gt3))) >> 128;
+
+        return address(result_);
+    }
+
+    function eq(gtAddress memory a, gtAddress memory b) internal returns (gtBool) {
+        gtBool result_ = eq(a.gt1, b.gt1);
+
+        result_ = and(result_, eq(a.gt2, b.gt2));
+        result_ = and(result_, eq(a.gt3, b.gt3));
+
+        return result_;
+    }
+
+    function ne(gtAddress memory a, gtAddress memory b) internal returns (gtBool) {
+        gtBool result_ = ne(a.gt1, b.gt1);
+
+        result_ = or(result_, ne(a.gt2, b.gt2));
+        result_ = or(result_, ne(a.gt3, b.gt3));
 
         return result_;
     }

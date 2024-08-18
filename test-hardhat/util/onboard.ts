@@ -7,8 +7,8 @@ let pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
 
 export async function setupAccounts() {
   if (pks.length == 0) {
-    const key1 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
-    const key2 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
+    const key1 = Wallet.createRandom(hre.ethers.provider)
+    const key2 = Wallet.createRandom(hre.ethers.provider)
     pks = [key1.privateKey, key2.privateKey]
 
     setEnvValue("PUBLIC_KEYS", `${key1.address},${key2.address}`)
