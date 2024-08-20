@@ -1,9 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
-import { BaseWallet, BigNumberish, ContractTransactionReceipt } from "ethers"
-import { ConfidentialAccount, decryptUint, buildInputText } from "@coti-io/coti-sdk-typescript"
-import { CtStringStruct, ItStringStruct } from "../typechain-types/contracts/examples/TestMpcCore"
+import { decryptString, buildStringInputText } from "@coti-io/coti-sdk-typescript"
 
 const gasLimit = 12000000
 
@@ -15,53 +13,6 @@ async function deploy() {
   await contract.waitForDeployment()
   
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
-}
-
-function prepareStringIT(
-    plaintext: string,
-    sender: { wallet: BaseWallet, userKey: string },
-    contractAddress: string,
-    functionSelector: string
-) {
-    const strBuffer = Buffer.from(plaintext)
-
-    const itString: ItStringStruct = {
-        ciphertext: { value: new Array<BigNumberish> },
-        signature: new Array<Buffer>
-    }
-
-    for (let i = 0; i < strBuffer.length / 8; i++) {
-        const startIdx = i * 8
-        const endIdx = Math.min((i * 8) + 8, strBuffer.length)
-
-        const byteArr = Buffer.concat([strBuffer.slice(startIdx, endIdx), Buffer.alloc(8 - (endIdx - startIdx))])
-
-        const encryptedCell = buildInputText(
-            BigInt("0x" + byteArr.toString('hex')),
-            sender,
-            contractAddress,
-            functionSelector
-        )
-
-        itString.ciphertext.value.push(encryptedCell.ctInt)
-        itString.signature.push(encryptedCell.signature)
-    }
-
-    return itString
-}
-
-function decryptString(ciphertext: CtStringStruct, owner: ConfidentialAccount) {
-    let strBuffer = Buffer.alloc(0)
-
-    for (let i = 0; i < ciphertext.value.length; i++) {
-        const decrypted = decryptUint(BigInt(ciphertext.value[i]), owner.userKey)
-        
-        strBuffer = Buffer.concat([strBuffer, Buffer.from(decrypted.toString(16), 'hex')])
-    }
-
-    const decryptedStr = strBuffer.toString()
-
-    return formatString(decryptedStr)
 }
 
 function formatString(str: string) {
@@ -81,7 +32,7 @@ describe("MPC Core", function () {
     it("Should store the string encrypted using the users key", async function () {
         const { contract, contractAddress, owner } = deployment
     
-        const itString = prepareStringIT(
+        const itString = buildStringInputText(
             str,
             { wallet: owner.wallet, userKey: owner.userKey },
             contractAddress,
@@ -100,7 +51,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, owner)
+        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
 
         expect(decryptedStr).to.equal(str)
     })
@@ -110,7 +61,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, otherAccount)
+        const decryptedStr = decryptString(userEncryptedString, otherAccount.userKey)
 
         expect(decryptedStr).to.not.equal(str)
     })
@@ -122,7 +73,7 @@ describe("MPC Core", function () {
     it("Should store the string encrypted using the network key", async function () {
         const { contract, contractAddress, owner } = deployment
     
-        const itString = prepareStringIT(
+        const itString = buildStringInputText(
             str,
             { wallet: owner.wallet, userKey: owner.userKey },
             contractAddress,
@@ -169,7 +120,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, owner)
+        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
 
         expect(decryptedStr).to.equal(str)
     })
@@ -183,7 +134,7 @@ describe("MPC Core", function () {
         it("Should set isEqual to true", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itString = prepareStringIT(
+            const itString = buildStringInputText(
                 a,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
@@ -204,14 +155,14 @@ describe("MPC Core", function () {
         it("Should set isEqual to false", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itStringA = prepareStringIT(
+            const itStringA = buildStringInputText(
                 a,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
             )
     
-            const itStringB = prepareStringIT(
+            const itStringB = buildStringInputText(
                 b,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
@@ -234,14 +185,14 @@ describe("MPC Core", function () {
         it("Should set isEqual to true", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itStringA = prepareStringIT(
+            const itStringA = buildStringInputText(
                 a,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
             )
     
-            const itStringB = prepareStringIT(
+            const itStringB = buildStringInputText(
                 b,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
@@ -262,7 +213,7 @@ describe("MPC Core", function () {
         it("Should set isEqual to false", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itString = prepareStringIT(
+            const itString = buildStringInputText(
                 a,
                 { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
@@ -300,7 +251,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, owner)
+        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
 
         expect(decryptedStr).to.not.equal(str)
     })

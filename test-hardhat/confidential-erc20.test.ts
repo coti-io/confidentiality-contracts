@@ -109,9 +109,9 @@ describe("Confidential ERC20", function () {
 
       const func = contract.connect(owner.wallet)["transfer(address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
-      const { ctInt, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
+      const { ciphertext, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
 
-      await (await func(otherAccount.wallet.address, ctInt, signature, false, { gasLimit })).wait()
+      await (await func(otherAccount.wallet.address, ciphertext, signature, false, { gasLimit })).wait()
       await expectBalance(contract, initialBalance - transferAmount, owner)
     })
 
@@ -148,9 +148,9 @@ describe("Confidential ERC20", function () {
 
       const func = contract.connect(owner.wallet)["transferFrom(address,address,uint256,bytes,bool)"]
       const selector = func.fragment.selector
-      let { ctInt, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
+      let { ciphertext, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
       await (
-        await func(owner.wallet.address, otherAccount.wallet.address, ctInt, signature, false, { gasLimit })
+        await func(owner.wallet.address, otherAccount.wallet.address, ciphertext, signature, false, { gasLimit })
       ).wait()
 
       await expectBalance(contract, initialBalance - transferAmount, owner)
@@ -164,8 +164,8 @@ describe("Confidential ERC20", function () {
 
       const func = contract.connect(owner.wallet)["approve(address,uint256,bytes)"]
       const selector = func.fragment.selector
-      const { ctInt, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
-      await (await func(otherAccount.wallet.address, ctInt, signature, { gasLimit })).wait()
+      const { ciphertext, signature } = await buildInputText(BigInt(transferAmount), owner, contractAddress, selector)
+      await (await func(otherAccount.wallet.address, ciphertext, signature, { gasLimit })).wait()
 
       await expectAllowance(contract, transferAmount, owner, otherAccount.wallet.address)
     })

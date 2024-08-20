@@ -9,7 +9,7 @@ import "../../lib/MpcCore.sol";
  * @dev ConfidentialERC721 token with storage based token URI management.
  */
 abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
-    mapping(uint256 tokenId => utUint64[]) private _tokenURIs;
+    mapping(uint256 tokenId => utString) private _tokenURIs;
     
 
     event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
@@ -25,16 +25,16 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
         return interfaceId == type(ConfidentialERC721).interfaceId;
     }
 
-    function tokenURI(uint256 tokenId) public view virtual returns (ctUint64[] memory) {
-        utUint64[] memory _tokenURI = _tokenURIs[tokenId];
+    function tokenURI(uint256 tokenId) public view virtual returns (ctString memory) {
+        // utUint64[] memory _tokenURI = _tokenURIs[tokenId];
 
-        ctUint64[] memory _userTokenURI = new ctUint64[](_tokenURIs[tokenId].length);
+        // ctUint64[] memory _userTokenURI = new ctUint64[](_tokenURIs[tokenId].length);
 
-        for (uint256 i = 0; i < _tokenURI.length; ++i) {
-            _userTokenURI[i] = _tokenURI[i].userCiphertext;
-        }
+        // for (uint256 i = 0; i < _tokenURI.length; ++i) {
+        //     _userTokenURI[i] = _tokenURI[i].userCiphertext;
+        // }
         
-        return _userTokenURI;
+        return _tokenURIs[tokenId].userCiphertext;
     }
 
     /**
@@ -44,18 +44,17 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     function _setTokenURI(
         address to,
         uint256 tokenId,
-        ctUint64[] calldata _itTokenURI,
-        bytes[] calldata _itSignature
+        itString calldata itTokenURI
     ) internal virtual {
-        gtUint64[] memory _tokenURI = new gtUint64[](_itTokenURI.length);
+        gtString memory _tokenURI = gtString(new gtUint64[](itTokenURI.ciphertext.value.length));
 
         itUint64 memory it;
 
-        for (uint256 i = 0; i < _itTokenURI.length; ++i) {
-            it.ciphertext = _itTokenURI[i];
-            it.signature = _itSignature[i];
+        for (uint256 i = 0; i < itTokenURI.ciphertext.value.length; ++i) {
+            it.ciphertext = itTokenURI.ciphertext.value[i];
+            it.signature = itTokenURI.signature[i];
 
-            _tokenURI[i] = MpcCore.validateCiphertext(it);
+            _tokenURI.value[i] = MpcCore.validateCiphertext(it);
         }
 
         _setTokenURI(to, tokenId, _tokenURI, true);
@@ -68,37 +67,20 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
     function _setTokenURI(
         address to,
         uint256 tokenId,
-        gtUint64[] memory _tokenURI,
+        gtString memory _tokenURI,
         bool updateCiphertext
     ) private {
         if (ownerOf(tokenId) == address(0)) {
             revert ERC721URIStorageNonMintedToken(tokenId);
         }
 
-        // we must first make sure that tokenURI has the correct length
-        utUint64[] storage tokenURI = _tokenURIs[tokenId];
-
-        utUint64 memory offBoardCombined;
+        utString memory offBoardCombined = MpcCore.offBoardCombined(_tokenURI, to);
 
         if (updateCiphertext) {
-            for (uint256 i = 0; i < _tokenURI.length; ++i) {
-                offBoardCombined = MpcCore.offBoardCombined(_tokenURI[i], to);
-
-                tokenURI.push(offBoardCombined);
-            }
-
-            _tokenURIs[tokenId] = tokenURI;
+            _tokenURIs[tokenId] = offBoardCombined;
         } else {
-            for (uint256 i = 0; i < _tokenURI.length; ++i) {
-                offBoardCombined = MpcCore.offBoardCombined(_tokenURI[i], to);
-
-                tokenURI[i].userCiphertext = offBoardCombined.userCiphertext;
-            }
-
-            _tokenURIs[tokenId] = tokenURI;
+            _tokenURIs[tokenId].userCiphertext = offBoardCombined.userCiphertext;
         }
-        
-
     }
 
     function _update(
@@ -106,12 +88,12 @@ abstract contract ConfidentialERC721URIStorage is IERC165, ConfidentialERC721 {
         uint256 tokenId,
         address auth
     ) internal virtual override returns (address) {
-        utUint64[] memory _tokenURI = _tokenURIs[tokenId];
+        ctString memory _tokenURI = _tokenURIs[tokenId].ciphertext;
 
-        gtUint64[] memory _networkTokenURI = new gtUint64[](_tokenURI.length);
+        gtString memory _networkTokenURI = gtString(new gtUint64[](_tokenURI.value.length));
 
-        for (uint256 i = 0; i < _networkTokenURI.length; ++i) {
-            _networkTokenURI[i] = MpcCore.onBoard(_tokenURI[i].ciphertext);
+        for (uint256 i = 0; i < _networkTokenURI.value.length; ++i) {
+            _networkTokenURI.value[i] = MpcCore.onBoard(_tokenURI.value[i]);
         }
 
         // reencrypt with the new user key
