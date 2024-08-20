@@ -36,14 +36,13 @@ contract ConfidentialNFTExample is
 
     function mint(
         address to,
-        ctUint64[] calldata _itTokenURI,
-        bytes[] calldata _itSignature
+        itString calldata itTokenURI
     ) public onlyOwner {
         uint256 tokenId = _totalSupply;
         
         ConfidentialERC721._mint(to, tokenId);
 
-        ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, _itTokenURI, _itSignature);
+        ConfidentialERC721URIStorage._setTokenURI(msg.sender, tokenId, itTokenURI);
 
         _totalSupply += 1;
 

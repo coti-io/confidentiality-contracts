@@ -86,8 +86,8 @@ describe("Confidential Auction", function () {
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await buildInputText(BigInt(bidAmount), owner, contractAddress, selector)
-      await (await func(ctInt, signature, { gasLimit })).wait()
+      const { ciphertext, signature } = await buildInputText(BigInt(bidAmount), owner, contractAddress, selector)
+      await (await func(ciphertext, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
 
@@ -103,8 +103,8 @@ describe("Confidential Auction", function () {
 
       const func = contract.connect(owner.wallet).bid
       const selector = func.fragment.selector
-      const { ctInt, signature } = await buildInputText(BigInt(bidAmount * 2), owner, contractAddress, selector)
-      await (await func(ctInt, signature, { gasLimit })).wait()
+      const { ciphertext, signature } = await buildInputText(BigInt(bidAmount * 2), owner, contractAddress, selector)
+      await (await func(ciphertext, signature, { gasLimit })).wait()
 
       await expectBalance(token, initialBalance - bidAmount, owner)
 
