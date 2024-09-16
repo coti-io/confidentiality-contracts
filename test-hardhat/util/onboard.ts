@@ -1,14 +1,18 @@
 import fs from "fs"
 import hre from "hardhat"
-import { Wallet, parseEther } from "ethers"
-import { ConfidentialAccount } from "@coti-io/coti-sdk-typescript"
+import {Wallet, parseEther, getDefaultProvider} from "ethers"
+import {ConfidentialAccount, initEtherProvider, transferNative} from "@coti-io/coti-sdk-typescript"
+import dotenv from "dotenv";
 
 let pks = process.env.SIGNING_KEYS ? process.env.SIGNING_KEYS.split(",") : []
 
 export async function setupAccounts() {
+  dotenv.config();
+  const provider = initEtherProvider('https://testnet.coti.io/rpc');
+
   if (pks.length == 0) {
-    const key1 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
-    const key2 = hre.ethers.Wallet.createRandom(hre.ethers.provider)
+    const key1 = hre.ethers.Wallet.createRandom(provider)
+    const key2 = hre.ethers.Wallet.createRandom(provider)
     pks = [key1.privateKey, key2.privateKey]
 
     setEnvValue("PUBLIC_KEYS", `${key1.address},${key2.address}`)
@@ -17,8 +21,8 @@ export async function setupAccounts() {
     throw new Error(`Created new random accounts ${key1.address} and ${key2.address}. Please use faucet to fund it.`)
   }
 
-  const wallets = pks.map((pk) => new hre.ethers.Wallet(pk, hre.ethers.provider))
-  if ((await hre.ethers.provider.getBalance(wallets[0].address)) === BigInt("0")) {
+  const wallets = pks.map((pk) => new hre.ethers.Wallet(pk, provider))
+  if ((await provider.getBalance(wallets[0].address)) === BigInt("0")) {
     throw new Error(`Please use faucet to fund account ${wallets[0].address}`)
   }
 
