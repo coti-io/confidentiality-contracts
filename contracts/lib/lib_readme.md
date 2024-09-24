@@ -1,6 +1,9 @@
 # MpcCore.sol
 
-This Solidity library, `MpcCore`, provides core functionalities for secure multi-party computation (MPC) using the COTI protocol. Below is an overview of its components and functions:
+This Solidity library, `MpcCore`, provides core functionalities for secure multi-party computation (MPC) using the COTI protocol.  
+
+Below is an overview of its components and functions:
+
 
 ## Legend
 
@@ -31,10 +34,48 @@ These functions combine enum values into bytes for efficient storage and transfe
 - `combineEnumsToBytes3(MPC_TYPE mpcType1, MPC_TYPE mpcType2, ARGS argsType)`: Combines two `MPC_TYPE` values and an `ARGS` value into a `bytes3` value.
 - `combineEnumsToBytes4(MPC_TYPE mpcType1, MPC_TYPE mpcType2, MPC_TYPE mpcType3, ARGS argsType)`: Combines three `MPC_TYPE` values and an `ARGS` value into a `bytes4` value.
 
+### Overflow and Result Validation
+- `checkOverflow`: Validates whether an overflow has occurred in a cryptographic operation.
+- `checkRes8`, `checkRes16`, `checkRes32`, `checkRes64`: Check the result for different bit sizes (8, 16, 32, and 64 bits).
+
 ### Key Management Functions
 - `getUserKey(bytes calldata signedEK, bytes calldata signature)`: Retrieves the user's AES encryption key in encrypted format, by using the provided public key to encrypt it - signature is used to validate the account ownership.
+- `deleteUserKey`: Deletes a user’s cryptographic key.
 
 This library is designed to be used as part of a secure multi-party computation framework, facilitating the handling and combination of encrypted and signed data types.
+
+### Ciphertext Validation and Decryption
+- `validateCiphertext`: Validates the integrity of a ciphertext.
+- `decrypt`: Decrypts a given ciphertext.
+
+### Onboarding and Offboarding Users
+- `onBoard`: Adds a user to the MPC protocol.
+- `offBoard`: Removes a user from the MPC protocol.
+- `offBoardToUser`: Transfers data ownership to a user during offboarding.
+- `offBoardCombined`: Combines offboarding actions for multiple users.
+
+### Setting Public Keys
+- `setPublic`: Sets a public key for cryptographic operations.
+- `setPublic8`, `setPublic16`, `setPublic32`, `setPublic64`: Sets public keys for specific bit sizes (8, 16, 32, and 64 bits).
+
+### Random Number Generation
+- `rand`, `rand8`, `rand16`, `rand32`, `rand64`: Generate random numbers of various bit sizes.
+- `randBoundedBits8`, `randBoundedBits16`, `randBoundedBits32`, `randBoundedBits64`: Generates bounded random numbers within a specified range for different bit sizes.
+
+### Logical and Comparison Operations
+- `and`, `or`, `xor`: Perform bitwise operations.
+- `eq`, `ne`, `ge`, `gt`, `le`, `lt`: Perform comparison operations (equality, inequality, greater than, less than, etc.).
+
+### Mathematical Operations
+- `add`, `checkedAdd`, `sub`, `checkedSub`, `mul`, `checkedMul`, `div`, `rem`: Perform mathematical operations, with both standard and overflow-checked versions available.
+- `min`, `max`: Return the minimum or maximum of two values.
+
+### Data Transfer Operations
+- `transfer`, `transferWithAllowance`: Facilitate data or token transfer operations between accounts.
+
+### Multiplexer and Logical Negation
+- `mux`: Implements a multiplexer operation (conditional value selection).
+- `not`: Implements a bitwise NOT operation.
 
 # MpcInterface.sol
 
