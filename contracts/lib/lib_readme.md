@@ -49,13 +49,13 @@ This library is designed to be used as part of a secure multi-party computation 
 - `decrypt`: Decrypts a given ciphertext.
 
 ### Onboarding and Offboarding Users
-- `onBoard`: Adds a user to the MPC protocol.
-- `offBoard`: Removes a user from the MPC protocol.
-- `offBoardToUser`: Transfers data ownership to a user during offboarding.
-- `offBoardCombined`: Combines offboarding actions for multiple users.
+- `onBoard`: Adds a user to the MPC protocol, loading data from `ct` type to `gt` type.
+- `offBoard`: Removes a user from the MPC protocol, transforming data from `gt` type to `ct` type.
+- `offBoardToUser`: Transfers data ownership to a user during offboarding; transforms from `gt` type to `ct` type previously prepared by the user's AES key rather than the MPC one.
+- `offBoardCombined`: Combines offboarding actions for multiple users, offboarding to both the user's AES key and the network's AES key.
 
 ### Setting Public Keys
-- `setPublic`: Sets a public key for cryptographic operations.
+- `setPublic`: Sets a public key for cryptographic operations, taking data that was sent to the contract in as `ct` and transforming it to `gt`.
 - `setPublic8`, `setPublic16`, `setPublic32`, `setPublic64`: Sets public keys for specific bit sizes (8, 16, 32, and 64 bits).
 
 ### Random Number Generation
