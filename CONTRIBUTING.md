@@ -1,7 +1,7 @@
 
-# Contributing to COTI SDK TypeScript Examples
+# Contributing to COTI Confidentiality Contracts Project
 
-Thank you for your interest in contributing to the COTI SDK TypeScript Examples project! We welcome contributions from the community and appreciate your efforts to improve our project.
+Thank you for your interest in contributing to the COTI Confidentiality Contracts project! We welcome contributions from the community and appreciate your efforts to improve our project.
 
 ## Table of Contents
 
@@ -38,8 +38,8 @@ We welcome code contributions! To get started, follow these steps:
 
 2. **Clone your fork**: 
    ```sh
-   git clone https://github.com/your-username/coti-sdk-typescript-examples.git
-   cd coti-sdk-typescript-examples
+   git clone https://github.com/your-username/confidentiality-contracts.git
+   cd confidentiality-contracts
    ```
 
 3. **Create a branch**: 
