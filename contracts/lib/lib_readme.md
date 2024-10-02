@@ -49,14 +49,14 @@ This library is designed to be used as part of a secure multi-party computation 
 - `decrypt`: Decrypts a given ciphertext.
 
 ### Onboarding and Offboarding Users
-- `onBoard`: Adds a user to the MPC protocol, loading data from `ct` type to `gt` type.
-- `offBoard`: Removes a user from the MPC protocol, transforming data from `gt` type to `ct` type.
-- `offBoardToUser`: Transfers data ownership to a user during offboarding; transforms from `gt` type to `ct` type previously prepared by the user's AES key rather than the MPC one.
-- `offBoardCombined`: Combines offboarding actions for multiple users, offboarding to both the user's AES key and the network's AES key.
+- `onBoard`: Operating for loading data from `ct` type to `gt` type. for example loading data saved on-chain so it can be used for computation.
+- `offBoard`: Operation for transforming data from `gt` type to `ct` type. for example saving data after a computation operation was done on-chain.
+- `offBoardToUser`: Operation to transform from `gt` type to `ct` type, same as `offBoard`. The main difference is that the AES key used for that is from `msg.sender` rather then the network itself.
+- `offBoardCombined`: Operation to transform from `gt` type to `ct` type, same as `offBoard` and `offBoardToUser`, so that it returns the `ct` encrypted by the network key and by the `msg.sender` key.
 
 ### Setting Public Keys
-- `setPublic`: Sets a public key for cryptographic operations, taking data that was sent to the contract in as `ct` and transforming it to `gt`.
-- `setPublic8`, `setPublic16`, `setPublic32`, `setPublic64`: Sets public keys for specific bit sizes (8, 16, 32, and 64 bits).
+- `setPublic`: Transforms data that was sent as clear value (not encrypted) to the contract and transforms it to `gt` type so that it can be used for computation.
+- `setPublic8`, `setPublic16`, `setPublic32`, `setPublic64`: Same as `setPublic`, for specific bit sizes (8, 16, 32, and 64 bits).
 
 ### Random Number Generation
 - `rand`, `rand8`, `rand16`, `rand32`, `rand64`: Generate random numbers of various bit sizes.
