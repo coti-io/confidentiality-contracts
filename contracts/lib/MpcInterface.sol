@@ -11,8 +11,11 @@ interface ExtendedOperations {
     function RandBoundedBits(bytes1 metaData, uint8 numBits) external returns (uint256 result);
 
     function Add(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
+    function CheckedAdd(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 overflowBit, uint256 result);
     function Sub(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
+    function CheckedSub(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 overflowBit, uint256 result);
     function Mul(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
+    function CheckedMul(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 overflowBit, uint256 result);
     function Div(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
     function Rem(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
     function And(bytes3 metaData, uint256 lhs, uint256 rhs) external returns (uint256 result);
@@ -32,9 +35,10 @@ interface ExtendedOperations {
     function Mux(bytes3 metaData, uint256 bit, uint256 a,uint256 b) external returns (uint256 result);
     function Not(bytes1 metaData, uint256 a) external returns (uint256 result);
     function Transfer(bytes4 metaData, uint256 a, uint256 b, uint256 amount) external returns (uint256 new_a, uint256 new_b, uint256 res);
-    function TransferWithAllowance(bytes4 metaData, uint256 a, uint256 b, uint256 amount, uint256 allowance) external returns (uint256 new_a, uint256 new_b, uint256 res, uint256 new_allowance);
+    function TransferWithAllowance(bytes5 metaData, uint256 a, uint256 b, uint256 amount, uint256 allowance) external returns (uint256 new_a, uint256 new_b, uint256 res, uint256 new_allowance);
     function ValidateCiphertext(bytes1 metaData, uint256 ciphertext, bytes calldata signature) external returns (uint256 result);
-    function GetUserKey(bytes calldata signedEK) external view returns (bytes memory encryptedKey);
+    function GetUserKey(bytes calldata signedEK) external returns (bytes memory encryptedKey);
+    function DeleteUserKey(bytes calldata signature) external returns (bool);
 }
 
 address constant MPC_PRECOMPILE = address(0x0000000000000000000000000000000000000064);
