@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.1.tgz#63430d04bd8c5e74f8d7d049338f1cd9d4f02069"
   integrity sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==
 
-"@coti-io/coti-sdk-typescript@0.6.3":
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/@coti-io/coti-sdk-typescript/-/coti-sdk-typescript-0.6.3.tgz#9649810fd443991de366c386827c10932a2804c9"
-  integrity sha512-F3Omb7w/Qhn5q4rPLw4TuUiKnG2fXbzxeuYMBMWVcXj6T0c3YRwRU5LHaLAEZxS6qvCJNgjOpNqPwxVveEjZpg==
+"@coti-io/coti-sdk-typescript@0.6.4":
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/@coti-io/coti-sdk-typescript/-/coti-sdk-typescript-0.6.4.tgz#d294d983bc3d9cdc7ec01bbd2d4b145e0c5bf1e6"
+  integrity sha512-by/8Wu599KJr63eZ5L7S9G2gnSDMYFo2PP9XtlgBYsDRyj6BvqtOYavA1Ikl5IaE4oLtLLgxxcQV64Vw4g/LgA==
   dependencies:
     node-forge "^1.3.1"
 

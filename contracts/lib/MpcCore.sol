@@ -866,21 +866,21 @@ library MpcCore {
         gtString memory result_ = gtString(new gtUint64[](count_));
 
         bytes8 cell_;
-        uint256 byteIdx_;
-        
-        for (uint256 i = 0; i < count_; ++i) {
-            cell_ = bytes8(0);
 
-            for (uint256 j = 0; j < 8; ++j) {
+        for (uint256 i = 0; i < count_ * 8; ++i) {
+            if (i % 8 == 0) {
+                cell_ = bytes8(0);
+            } else {
                 cell_ <<= 8;
-                byteIdx_ = (i * 8) + j;
-
-                if (byteIdx_ < len_) {
-                    cell_ |= bytes8(strBytes_[byteIdx_]) >> 56;
-                }
             }
 
-            result_.value[i] = setPublic64(uint64(cell_));
+            if (i < len_) {
+                cell_ |= bytes8(strBytes_[i]) >> 56;
+            }
+
+            if (i % 8 == 7) {
+                result_.value[i / 8] = setPublic64(uint64(cell_));
+            }
         }
 
         return result_;
@@ -948,12 +948,17 @@ library MpcCore {
 
         bytes8 temp_;
 
+        uint256 resultIndex;
+        
         for (uint256 i = 0; i < len_; ++i) {
             temp_ = bytes8(decrypt(ct.value[i]));
 
-            for (uint256 j = 0; j < 8; j++) {
-                result_[(i * 8) + j] = temp_[j];
+            assembly {
+                // Copy the bytes directly into the result array using assembly.
+                mstore(add(result_, add(0x20, resultIndex)), temp_)
             }
+
+            resultIndex += 8;
         }
 
         return string(result_);
