@@ -1027,62 +1027,6 @@ library MpcCore {
         return result_;
     }
 
-    // generates a random alpha-numeric string of the desired length
-    function randString(uint256 len) internal returns (gtString memory) {
-        uint256 count_ = (len + 7) / 8; // Number of bytes8 elements needed
-        gtString memory result_ = gtString(new gtUint64[](count_));
-
-        gtUint64 ZERO_ASCII = setPublic64(48);
-        gtUint64 NINE_ASCII = setPublic64(57);
-        gtUint64 UPPERCASE_A_ASCII = setPublic64(65);
-        gtUint64 UPPERCASE_Z_ASCII = setPublic64(90);
-        gtUint64 LOWERCASE_A_ASCII = setPublic64(97);
-        gtUint64 LOWERCASE_Z_ASCII = setPublic64(122);
-
-        gtUint64 temp_ = setPublic64(0);
-        gtUint64 char_ = setPublic64(0);
-
-        for (uint256 i = 0; i < count_; ++i) {
-            temp_ = setPublic64(0);
-
-            for (uint256 j = 0; j < 8; ++j) {
-                while (true) {
-                    char_ = randBoundedBits64(7);
-
-                    if (
-                        decrypt(
-                            or(
-                                or(
-                                    and(
-                                        ge(char_, ZERO_ASCII),
-                                        le(char_, NINE_ASCII)
-                                    ),
-                                    and(
-                                        ge(char_, UPPERCASE_A_ASCII),
-                                        le(char_, UPPERCASE_Z_ASCII)
-                                    )
-                                ),
-                                and(
-                                    ge(char_, LOWERCASE_A_ASCII),
-                                    le(char_, LOWERCASE_Z_ASCII)
-                                )
-                            )
-                        )
-                    ) {
-                        break;
-                    }
-                }
-
-                temp_ = shl(temp_, setPublic64(8));
-                temp_ = or(temp_, char_);
-            }
-
-            result_.value[i] = temp_;
-        }
-        
-        return result_;
-    }
-
     function decrypt(gtString memory ct) internal returns (string memory){
         uint256 len_ = ct.value.length;
         bytes memory result_ = new bytes(len_ * 8);

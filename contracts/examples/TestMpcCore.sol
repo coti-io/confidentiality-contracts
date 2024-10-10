@@ -54,10 +54,4 @@ contract TestMpcCore {
 
         isEqual = MpcCore.decrypt(isEqual_);
     }
-
-    function setRandomString() public {
-        gtString memory gt_ = MpcCore.randString(20);
-
-        userEncryptedString = MpcCore.offBoardToUser(gt_, msg.sender);
-    }
 }

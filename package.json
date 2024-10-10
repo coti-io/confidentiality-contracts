@@ -1,6 +1,6 @@
 {
   "name": "confidentiality-contracts",
-  "version": "0.6.8",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "build": "yarn hardhat compile",
@@ -12,7 +12,7 @@
     "test": "yarn hardhat test"
   },
   "devDependencies": {
-    "@coti-io/coti-sdk-typescript": "1.0.3",
+    "@coti-io/coti-ethers": "1.0.1-b",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
@@ -28,12 +28,12 @@
     "@types/node": ">=18.0.0",
     "chai": "^4.2.0",
     "dotenv": "^16.4.5",
-    "ethers": "^6.12.1",
     "hardhat": "^2.22.2",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.0",
     "ts-node": ">=8.0.0",
     "typechain": "^8.3.0",
     "typescript": ">=4.5.0"
-  }
+  },
+  "dependencies": {}
 }
