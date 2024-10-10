@@ -1,8 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
-import { ContractTransactionReceipt } from "ethers"
-import { decryptString, buildStringInputText } from "@coti-io/coti-sdk-typescript"
+import { ContractTransactionReceipt, itString } from "@coti-io/coti-ethers"
 
 const gasLimit = 12000000
 
@@ -10,10 +9,9 @@ async function deploy() {
   const [owner, otherAccount] = await setupAccounts()
 
   const factory = await hre.ethers.getContractFactory("ConfidentialNFTExample")
-  const contract = await factory.connect(owner.wallet).deploy({ gasLimit })
+  const contract = await factory.connect(owner as any).deploy({ gasLimit })
   await contract.waitForDeployment()
-  // const contract = await hre.ethers.getContractAt("NFTExample", "0x1Da1088ae90438f137826F7F4902914B503765dA")
-  // console.log(`contractAddress ${await contract.getAddress()}`)
+  
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
 }
 
@@ -38,7 +36,7 @@ describe("Confidential NFT", function () {
     })
 
     it("Contract owner should be the owner", async function () {
-      expect(await deployment.contract.owner()).to.equal(deployment.owner.wallet.address)
+      expect(await deployment.contract.owner()).to.equal(deployment.owner.address)
     })
   })
 
@@ -51,13 +49,13 @@ describe("Confidential NFT", function () {
       before(async function () {
         const { contract, contractAddress, owner, otherAccount } = deployment
         
-        const itTokenURI = await buildStringInputText(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
+        const itTokenURI = await owner.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
 
         tx = await (
           await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .mint(
-              otherAccount.wallet.address,
+              otherAccount.address,
               itTokenURI,
               { gasLimit })
           ).wait()
@@ -72,13 +70,13 @@ describe("Confidential NFT", function () {
       it("Should update the owners mapping", async function () {
         const { contract, otherAccount } = deployment
   
-        expect(await contract.ownerOf(BigInt(0))).to.equal(otherAccount.wallet.address)
+        expect(await contract.ownerOf(BigInt(0))).to.equal(otherAccount.address)
       })
 
       it("Should update the balances mapping", async function () {
         const { contract, otherAccount } = deployment
   
-        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(1))
+        expect(await contract.balanceOf(otherAccount.address)).to.equal(BigInt(1))
       })
 
     })
@@ -86,12 +84,12 @@ describe("Confidential NFT", function () {
     it("Should fail to mint if not owner", async function () {
       const { contract, contractAddress, otherAccount } = deployment
 
-      const itTokenURI = await buildStringInputText(tokenURI, otherAccount, contractAddress, contract.mint.fragment.selector)
+      const itTokenURI = await otherAccount.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
 
       const tx = await contract
-        .connect(otherAccount.wallet)
+        .connect(otherAccount as any)
         .mint(
-          otherAccount.wallet.address,
+          otherAccount.address,
           itTokenURI,
           { gasLimit }
         )
@@ -100,10 +98,10 @@ describe("Confidential NFT", function () {
     })
 
     it("Should fail to mint if the encrypted token URI is faulty", async function () {
-      const { contract, contractAddress, otherAccount } = deployment
+      const { contract, contractAddress, owner, otherAccount } = deployment
 
-      const ownerItTokenURI = await buildStringInputText(tokenURI, otherAccount, contractAddress, contract.mint.fragment.selector)
-      const otherAccountItTokenURI = await buildStringInputText(tokenURI, otherAccount, contractAddress, contract.mint.fragment.selector)
+      const ownerItTokenURI = await owner.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
+      const otherAccountItTokenURI = await otherAccount.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
 
       const itTokenURI = {
         ciphertext: ownerItTokenURI.ciphertext,
@@ -111,9 +109,9 @@ describe("Confidential NFT", function () {
       }
 
       const tx = await contract
-        .connect(otherAccount.wallet)
+        .connect(otherAccount as any)
         .mint(
-          otherAccount.wallet.address,
+          otherAccount.address,
           itTokenURI,
           { gasLimit }
         )
@@ -127,8 +125,8 @@ describe("Confidential NFT", function () {
       const { contract, owner } = deployment
 
       const tokenId = BigInt(1)
-      const ctURI = await contract.connect(owner.wallet).tokenURI(tokenId)
-      const uri = decryptString(ctURI, owner.userKey)
+      const ctURI = await contract.connect(owner as any).tokenURI(tokenId)
+      const uri = await owner.decryptValue(ctURI)
       
       expect(uri).to.equal("")
     })
@@ -142,21 +140,21 @@ describe("Confidential NFT", function () {
       before(async function () {
         const { contract, owner, otherAccount } = deployment
 
-        await (await contract.connect(otherAccount.wallet).approve(owner.wallet.address, tokenId, { gasLimit })).wait()
+        await (await contract.connect(otherAccount as any).approve(owner.address, tokenId, { gasLimit })).wait()
 
         await (
           await contract
-            .connect(owner.wallet)
-            .transferFrom(otherAccount.wallet.address, owner.wallet.address, tokenId, { gasLimit })
+            .connect(owner as any)
+            .transferFrom(otherAccount.address, owner.address, tokenId, { gasLimit })
         ).wait()
       })
 
       it("Should transfer token to other account", async function () {
         const { contract, owner, otherAccount } = deployment
   
-        expect(await contract.ownerOf(tokenId)).to.equal(owner.wallet.address)
-        expect(await contract.balanceOf(owner.wallet.address)).to.equal(BigInt(1))
-        expect(await contract.balanceOf(otherAccount.wallet.address)).to.equal(BigInt(0))
+        expect(await contract.ownerOf(tokenId)).to.equal(owner.address)
+        expect(await contract.balanceOf(owner.address)).to.equal(BigInt(1))
+        expect(await contract.balanceOf(otherAccount.address)).to.equal(BigInt(0))
       })
 
       it("Should allow the new owner to decrypt the token URI", async function () {
@@ -164,7 +162,7 @@ describe("Confidential NFT", function () {
 
         const encryptedTokenURI = await contract.tokenURI(tokenId)
 
-        const decryptedTokenURI = decryptString(encryptedTokenURI, owner.userKey)
+        const decryptedTokenURI = await owner.decryptValue(encryptedTokenURI)
 
         expect(decryptedTokenURI).to.equal(tokenURI)
       })
@@ -174,7 +172,7 @@ describe("Confidential NFT", function () {
 
         const encryptedTokenURI = await contract.tokenURI(tokenId)
 
-        const decryptedTokenURI = decryptString(encryptedTokenURI, otherAccount.userKey)
+        const decryptedTokenURI = await otherAccount.decryptValue(encryptedTokenURI)
 
         expect(decryptedTokenURI).to.not.equal(tokenURI)
       })
@@ -186,23 +184,23 @@ describe("Confidential NFT", function () {
       it("Should fail transfer token to other account for when no allowance", async function () {
         const { contract, contractAddress, owner, otherAccount } = deployment
 
-        const itTokenURI = await buildStringInputText(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
+        const itTokenURI = await owner.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
   
         const tokenId = await deployment.contract.totalSupply()
         
         await (
           await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .mint(
-              owner.wallet.address,
+              owner.address,
               itTokenURI,
               { gasLimit }
             )
         ).wait()
   
         const tx = await contract
-          .connect(otherAccount.wallet)
-          .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+          .connect(otherAccount as any)
+          .transferFrom(owner.address, otherAccount.address, tokenId, { gasLimit })
         let reverted = true
         try {
           await tx.wait()
@@ -214,23 +212,23 @@ describe("Confidential NFT", function () {
       it("Should fail to transfer from non-owner", async function () {
         const { contract, contractAddress, owner, otherAccount } = deployment
 
-        const itTokenURI = await buildStringInputText(tokenURI, owner, contractAddress, contract.mint.fragment.selector)
+        const itTokenURI = await owner.encryptValue(tokenURI, contractAddress, contract.mint.fragment.selector) as itString
   
         const tokenId = await deployment.contract.totalSupply()
         
         await (
           await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .mint(
-              owner.wallet.address,
+              owner.address,
               itTokenURI,
               { gasLimit }
             )
         ).wait()
   
         const tx = await contract
-          .connect(otherAccount.wallet)
-          .transferFrom(owner.wallet.address, otherAccount.wallet.address, tokenId, { gasLimit })
+          .connect(otherAccount as any)
+          .transferFrom(owner.address, otherAccount.address, tokenId, { gasLimit })
         let reverted = true
         try {
           await tx.wait()

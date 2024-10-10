@@ -15,7 +15,7 @@ function buildTest(
   it(`${contractName}.${func}(${params}) should return ${expectedResults}`, async function () {
     const [owner] = await setupAccounts()
 
-    const factory = await hre.ethers.getContractFactory(contractName, owner.wallet)
+    const factory = await hre.ethers.getContractFactory(contractName, owner as any)
     const contract = await factory.deploy({ gasLimit })
     await contract.waitForDeployment()
 
@@ -36,14 +36,14 @@ function buildTestWithUser(contractName: string, func: string, resFunc: string, 
   it(`${contractName}.${func}(${params}, <address>) should return the correct user decrypted value`, async function () {
     const [owner] = await setupAccounts()
 
-    const factory = await hre.ethers.getContractFactory(contractName, owner.wallet)
+    const factory = await hre.ethers.getContractFactory(contractName, owner as any)
     const contract = await factory.deploy({ gasLimit })
     await contract.waitForDeployment()
 
-    await (await contract.getFunction(func)(param, owner.wallet.address, { gasLimit: 12000000 })).wait()
+    await (await contract.getFunction(func)(param, owner.address, { gasLimit: 12000000 })).wait()
     const results = await contract.getFunction(resFunc)()
     for (const result of results) {
-      expect(owner.decryptUint(result)).to.equal(param)
+      expect(await owner.decryptValue(result)).to.equal(param)
     }
   })
 }

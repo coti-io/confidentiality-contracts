@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import { expect } from "chai"
 import { setupAccounts } from "./util/onboard"
-import { decryptString, buildStringInputText } from "@coti-io/coti-sdk-typescript"
+import { itString } from "@coti-io/coti-sdk-typescript"
 
 const gasLimit = 12000000
 
@@ -9,7 +9,7 @@ async function deploy() {
   const [owner, otherAccount] = await setupAccounts()
 
   const factory = await hre.ethers.getContractFactory("TestMpcCore")
-  const contract = await factory.connect(owner.wallet).deploy({ gasLimit })
+  const contract = await factory.connect(owner as any).deploy({ gasLimit })
   await contract.waitForDeployment()
   
   return { contract, contractAddress: await contract.getAddress(), owner, otherAccount }
@@ -32,15 +32,14 @@ describe("MPC Core", function () {
     it("Should store the string encrypted using the users key", async function () {
         const { contract, contractAddress, owner } = deployment
     
-        const itString = buildStringInputText(
+        const itString = await owner.encryptValue(
             str,
-            { wallet: owner.wallet, userKey: owner.userKey },
             contractAddress,
             contract.setUserEncryptedString.fragment.selector
-        )
+        ) as itString
 
         const tx = await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .setUserEncryptedString(itString, { gasLimit })
         
         await tx.wait()
@@ -51,7 +50,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
+        const decryptedStr = await owner.decryptValue(userEncryptedString)
 
         expect(decryptedStr).to.equal(str)
     })
@@ -61,7 +60,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, otherAccount.userKey)
+        const decryptedStr = await otherAccount.decryptValue(userEncryptedString)
 
         expect(decryptedStr).to.not.equal(str)
     })
@@ -73,15 +72,14 @@ describe("MPC Core", function () {
     it("Should store the string encrypted using the network key", async function () {
         const { contract, contractAddress, owner } = deployment
     
-        const itString = buildStringInputText(
+        const itString = await owner.encryptValue(
             str,
-            { wallet: owner.wallet, userKey: owner.userKey },
             contractAddress,
             contract.setNetworkEncryptedString.fragment.selector
-        )
+        ) as itString
 
         const tx = await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .setNetworkEncryptedString(itString, { gasLimit })
         
         await tx.wait()
@@ -91,7 +89,7 @@ describe("MPC Core", function () {
         const { contract, owner } = deployment
 
         const tx = await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .decryptNetworkEncryptedString()
 
         await tx.wait()
@@ -109,7 +107,7 @@ describe("MPC Core", function () {
         const { contract, owner } = deployment
 
         const tx = await contract
-            .connect(owner.wallet)
+            .connect(owner as any)
             .setPublicString(str, { gasLimit })
 
         await tx.wait()
@@ -120,7 +118,7 @@ describe("MPC Core", function () {
 
         const userEncryptedString = await contract.getUserEncryptedString()
 
-        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
+        const decryptedStr = await owner.decryptValue(userEncryptedString)
 
         expect(decryptedStr).to.equal(str)
     })
@@ -134,15 +132,14 @@ describe("MPC Core", function () {
         it("Should set isEqual to true", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itString = buildStringInputText(
+            const itString = await owner.encryptValue(
                 a,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
             const tx = await contract
-                .connect(owner.wallet)
+                .connect(owner as any)
                 .setIsEqual(itString, itString, true, { gasLimit })
             
             await tx.wait()
@@ -155,22 +152,20 @@ describe("MPC Core", function () {
         it("Should set isEqual to false", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itStringA = buildStringInputText(
+            const itStringA = await owner.encryptValue(
                 a,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
-            const itStringB = buildStringInputText(
+            const itStringB = await owner.encryptValue(
                 b,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
             const tx = await contract
-                .connect(owner.wallet)
+                .connect(owner as any)
                 .setIsEqual(itStringA, itStringB, true, { gasLimit })
             
             await tx.wait()
@@ -182,25 +177,23 @@ describe("MPC Core", function () {
     })
 
     describe("Using ne", function () {
-        it("Should set isEqual to true", async function () {
+        it("Should set isEqual to false", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itStringA = buildStringInputText(
+            const itStringA = await owner.encryptValue(
                 a,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
-            const itStringB = buildStringInputText(
+            const itStringB = await owner.encryptValue(
                 b,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
             const tx = await contract
-                .connect(owner.wallet)
+                .connect(owner as any)
                 .setIsEqual(itStringA, itStringB, false, { gasLimit })
             
             await tx.wait()
@@ -213,15 +206,14 @@ describe("MPC Core", function () {
         it("Should set isEqual to false", async function () {
             const { contract, contractAddress, owner } = deployment
     
-            const itString = buildStringInputText(
+            const itString = await owner.encryptValue(
                 a,
-                { wallet: owner.wallet, userKey: owner.userKey },
                 contractAddress,
                 contract.setIsEqual.fragment.selector
-            )
+            ) as itString
     
             const tx = await contract
-                .connect(owner.wallet)
+                .connect(owner as any)
                 .setIsEqual(itString, itString, false, { gasLimit })
             
             await tx.wait()
@@ -230,30 +222,6 @@ describe("MPC Core", function () {
     
             expect(isEqual).to.equal(true)
         })
-    })
-  })
-
-  describe("Set user-encrypted string using a random value", function () {
-    const str = "Hello darkness, my old friend."
-
-    it("It should store the encrypted string using the users key", async function () {
-        const { contract, owner } = deployment
-
-        const tx = await contract
-            .connect(owner.wallet)
-            .setRandomString({ gasLimit })
-
-        await tx.wait()
-    })
-
-    it("It should retrieve the string encrypted with the users key", async function () {
-        const { contract, owner } = deployment
-
-        const userEncryptedString = await contract.getUserEncryptedString()
-
-        const decryptedStr = decryptString(userEncryptedString, owner.userKey)
-
-        expect(decryptedStr).to.not.equal(str)
     })
   })
 })
