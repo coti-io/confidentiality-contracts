@@ -1,3 +1,6 @@
+> [!WARNING]
+> This repository has been deprecated. Please use our new [contract library](https://github.com/coti-io/coti-contracts) and [contract examples](https://github.com/coti-io/coti-contracts-examples) repositories.
+
 # COTI V2 Confidentiality Preserving L2 | SDKs and Examples
 
 All repositories specified below contain smart contracts that implement confidentiality features using the COTI V2 protocol.
